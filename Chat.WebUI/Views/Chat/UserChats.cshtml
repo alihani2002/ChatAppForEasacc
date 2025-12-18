@@ -1,0 +1,48 @@
+﻿@model List<Chat.Application.ChatSessionDetailsVM>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No previous chats.</div>
+}
+else
+{
+    @foreach (var session in Model)
+    {
+        <div class="border rounded p-3 mb-3">
+
+            <div class="d-flex justify-content-between mb-2">
+                <strong>Session #@session.SessionId</strong>
+                <span class="badge @(session.IsClosed ? "bg-secondary" : "bg-success")">
+                    @(session.IsClosed ? "Closed" : "Open")
+                </span>
+            </div>
+
+            <div class="chat-history">
+
+                @foreach (var msg in session.Messages)
+                {
+                    <div class="mb-2
+                                    @(msg.SenderId == session.UserId ? "text-start" : "text-end")">
+
+                        <div class="d-inline-block px-3 py-2 rounded
+                                        @(msg.SenderId == session.UserId
+                                                             ? "bg-light"
+                                                             : "bg-primary text-white")">
+
+                            <small class="d-block fw-bold">
+                                @(msg.SenderId == session.UserId ? "User" : "Admin")
+                            </small>
+
+                            @msg.Content
+
+                            <div class="text-muted small mt-1">
+                                @msg.CreatedOn.ToString("yyyy-MM-dd HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+}

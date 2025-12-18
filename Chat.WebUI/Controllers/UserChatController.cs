@@ -18,6 +18,8 @@ namespace Chat.WebUI.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _chatService.CloseSessionAsync(userId);
+            ViewBag.UserId = userId;
             var session = await _chatService.CreateSessionAsync(userId);
             return View(session);
         }

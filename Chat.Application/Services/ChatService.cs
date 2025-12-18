@@ -30,28 +30,46 @@ namespace Chat.Application.Services
 
         public async Task<Message> SendMessageAsync(int sessionId, string senderId, string content)
         {
+            var session = await _unitOfWork.ChatSessions.GetById(sessionId);
+            if (session == null || session.IsClosed)
+                throw new Exception("Session closed");
+
             var message = new Message
             {
                 ChatSessionId = sessionId,
                 SenderId = senderId,
                 Content = content,
                 MessageType = MessageType.Text,
-                Status = MessageStatus.Sent
+                Status = MessageStatus.Sent,
+                CreatedOn = DateTime.Now ,
+                
             };
 
+            session.LastMessageOn = DateTime.Now;
+
             await _unitOfWork.Messages.Add(message);
+            _unitOfWork.ChatSessions.Update(session);
             _unitOfWork.Complete();
 
             return message;
         }
 
-        public async Task CloseSessionAsync(int sessionId)
-        {
-            var session = await _unitOfWork.ChatSessions.GetById(sessionId);
-            if (session == null) return;
 
-            session.IsClosed = true;
-            _unitOfWork.ChatSessions.Update(session);
+        public async Task CloseSessionAsync(string userId)
+        {
+            var user = await _unitOfWork.ApplicationUsers.GetByName(userId);
+            var sessions = _unitOfWork.ChatSessions
+                .GetQueryable()
+                .Where(s => s.User.Id == user!.Id)
+                .OrderByDescending(s => s.CreatedOn)
+                .ToList();
+
+            foreach (var session in sessions)
+            {
+                session.IsClosed = true;
+                _unitOfWork.ChatSessions.Update(session);
+            }
+
             _unitOfWork.Complete();
         }
 

@@ -1,34 +1,856 @@
 ﻿@model Chat.Application.ChatSessionDetailsVM
+@using System.Security.Claims
 
-<h3>Chat with User: @Model.UserId</h3>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "محادثة الدعم";
+    var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isClosed = Model.IsClosed;
+}
 
-<div id="chatBox" class="border p-3 mb-3" style="height:350px; overflow-y:auto;">
-    @foreach (var msg in Model.Messages)
-    {
-        <div class="mb-2">
-            <strong>@msg.SenderId</strong>: @msg.Content
-            <small class="text-muted">@msg.CreatedOn.ToString("HH:mm")</small>
+<div class="admin-chat-container">
+    <!-- رأس المحادثة -->
+    <div class="admin-chat-header bg-gradient bg-dark text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">محادثة مع المستخدم</h5>
+                    <div class="user-info">
+                        <small>
+                            <i class="fas fa-user me-1"></i> ID: @Model.UserId
+                        </small>
+                        <small class="ms-3">
+                            <i class="fas fa-calendar me-1"></i> بدأت: @Model.CreatedOn.ToString("yyyy-MM-dd HH:mm")
+                        </small>
+                        <small class="ms-3">
+                            <i class="fas fa-circle @(isClosed ? "text-danger" : "text-success") me-1"></i>
+                            @(isClosed ? "مغلقة" : "نشطة")
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning text-dark">
+                    <i class="fas fa-hashtag"></i> @Model.SessionId
+                </span>
+            
+                <a href="/Chat/" class="btn btn-sm btn-light">
+                    <i class="fas fa-arrow-right me-1"></i> العودة
+                </a>
+            </div>
         </div>
-    }
+    </div>
+
+    <!-- رسائل المحادثة -->
+    <div id="chatBox" class="admin-chat-messages p-4">
+        @if (!Model.Messages.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-comments fa-3x mb-3"></i>
+                <p>لا توجد رسائل بعد</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in Model.Messages)
+            {
+                var isAdmin = msg.SenderId == adminId;
+                <div class="message-wrapper @(isAdmin ? "admin-message" : "user-message")" data-message-id="@msg.Id">
+                    <div class="message-bubble @(isAdmin ? "sent" : "received")">
+                        <div class="message-content">@msg.Content</div>
+                        <div class="message-footer">
+                            <small class="message-time">@msg.CreatedOn.ToString("HH:mm")</small>
+                            @if (isAdmin)
+                            {
+                                <small class="message-status ms-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                </small>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- منطقة الرد -->
+    <div class="admin-chat-input p-3 bg-light border-top">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="input-group">
+                    <textarea id="msgInput" class="form-control" rows="2"
+                              placeholder="اكتب ردك هنا..." @(isClosed ? "disabled" : "")></textarea>
+                    <button id="btnSend" class="btn btn-primary px-4" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-paper-plane me-2"></i> إرسال
+                    </button>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-secondary" title="إرفاق ملف" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" title="إرسال رد سريع" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-bolt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="mt-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                <span id="connectionStatus">جاري الاتصال...</span>
+            </small>
+            <small id="typingIndicator" class="text-primary fw-bold" style="display:none;">
+                <i class="fas fa-pencil-alt me-1"></i> المستخدم يكتب...
+            </small>
+        </div>
+    </div>
 </div>
 
-<div class="input-group">
-    <input id="msgInput" class="form-control" placeholder="Type message..." />
-    <button id="btnSend" class="btn btn-primary">Send</button>
-</div>
+
+    <style>
+        .admin-chat-container {
+            max-width: 1200px;
+            margin: 1rem auto;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            background: white;
+        }
+
+        .admin-chat-header {
+            background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-info {
+            opacity: 0.9;
+        }
+
+        .admin-chat-messages {
+            height: 600px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 20px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            max-width: 80%;
+        }
+
+        .admin-message {
+            margin-left: auto;
+            justify-content: flex-end;
+        }
+
+        .user-message {
+            margin-right: auto;
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+            .message-bubble.sent {
+                background: linear-gradient(135deg, #0d6efd, #0a58ca);
+                color: white;
+                border-bottom-right-radius: 4px;
+            }
+
+            .message-bubble.received {
+                background: white;
+                color: #212529;
+                border: 1px solid #dee2e6;
+                border-bottom-left-radius: 4px;
+            }
+
+        .message-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .message-status {
+            font-size: 0.7rem;
+        }
+
+        .admin-chat-input {
+            background: white;
+        }
+
+        #msgInput {
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            resize: none;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+            #msgInput:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            }
+
+        #btnSend {
+            border-radius: 8px;
+            margin-left: 10px;
+            height: 100%;
+        }
+
+        /* الرسائل الجديدة */
+        .new-message {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* الرسالة قيد الإرسال */
+        .sending {
+            opacity: 0.7;
+            border-right: 3px solid #ffc107 !important;
+        }
+
+        /* رسالة تم إرسالها */
+        .sent-confirmed {
+            border-right: 3px solid #28a745 !important;
+        }
+
+        /* رسالة فشل إرسالها */
+        .send-failed {
+            border-right: 3px solid #dc3545 !important;
+            opacity: 0.8;
+        }
+
+        /* أيقونة التأكيد */
+        .fa-check-circle {
+            color: #28a745;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        /* أيقونة التحذير */
+        .fa-exclamation-triangle {
+            color: #ffc107;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        @@keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* مؤشر الكتابة */
+        #typingIndicator {
+            animation: blink 1.5s infinite;
+        }
+
+        @@keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* زر الإغلاق */
+        #btnCloseChat:hover:not(:disabled) {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        /* التمرير */
+        .admin-chat-messages::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .admin-chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .admin-chat-messages::-webkit-scrollbar-thumb {
+            background: #b0b0b0;
+            border-radius: 10px;
+        }
+
+            .admin-chat-messages::-webkit-scrollbar-thumb:hover {
+                background: #888;
+            }
+
+        /* حالة الاتصال */
+        #connectionStatus.connected {
+            color: #28a745;
+        }
+
+        #connectionStatus.disconnected {
+            color: #dc3545;
+        }
+
+        #connectionStatus.reconnecting {
+            color: #ffc107;
+        }
+
+        /* تصميم للجوال */
+        @@media (max-width: 768px) {
+            .admin-chat-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+
+            .admin-chat-messages {
+                height: calc(100vh - 220px);
+            }
+
+            .message-wrapper {
+                max-width: 90%;
+            }
+
+            .user-info {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+                .user-info small.ms-3 {
+                    margin-left: 0 !important;
+                }
+        }
+    </style>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
     <script>
-        var currentChatId = "@Model.SessionId";
-    </script>
-    <script src="~/js/chat.js"></script>
+        // المتغيرات العامة
+        const currentChatId = "@Model.SessionId";
+        const currentUserId = "@adminId";
+        const otherUserId = "@Model.UserId";
+        const isChatClosed = @(isClosed ? "true" : "false");
+        let connection = null;
+        let isTyping = false;
+        let sentMessageIds = new Set(); // لتخزين معرفات الرسائل المرسلة
+        let tempMessages = new Map(); // لتخزين الرسائل المؤقتة
 
-    <script>
-        document.getElementById("btnSend").onclick = function () {
-            const input = document.getElementById("msgInput");
-            sendMessage(currentChatId, input.value);
-            input.value = "";
-        };
+        // جمع معرفات الرسائل الموجودة بالفعل
+        document.addEventListener('DOMContentLoaded', function() {
+            const existingMessages = document.querySelectorAll('[data-message-id]');
+            existingMessages.forEach(msg => {
+                const messageId = msg.getAttribute('data-message-id');
+                if (messageId) {
+                    sentMessageIds.add(parseInt(messageId));
+                }
+            });
+        });
+
+        // التحقق من أن المحادثة ليست مغلقة
+        if (isChatClosed) {
+            document.getElementById('connectionStatus').textContent = 'المحادثة مغلقة';
+            document.getElementById('connectionStatus').className = 'text-danger';
+        }
+
+        // تهيئة الاتصال للإدمن
+        function initializeAdminConnection() {
+            // إذا كانت المحادثة مغلقة، لا نقوم بالاتصال
+            if (isChatClosed) {
+                addSystemMessage('هذه المحادثة مغلقة ولا يمكن إرسال رسائل جديدة');
+                return;
+            }
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect({
+                    nextRetryDelayInMilliseconds: retryContext => {
+                        if (retryContext.elapsedMilliseconds < 60000) {
+                            return 2000;
+                        }
+                        return 5000;
+                    }
+                })
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+
+            // استقبال الرسائل الجديدة - مع 4 معاملات (messageId هو الرابع)
+            connection.on("ReceiveMessage", function (senderId, message, time, messageId = null) {
+                const isAdmin = senderId === currentUserId;
+
+                // إزالة رسالة "لا توجد رسائل" إذا كانت موجودة
+                const noMessages = document.getElementById('chatBox').querySelector('.text-center.text-muted');
+                if (noMessages) noMessages.remove();
+
+                // إذا كانت الرسالة لها معرف وتوجد بالفعل، تجاهلها
+                if (messageId && sentMessageIds.has(messageId)) {
+                    console.log('تم تجاهل رسالة مكررة (معرف موجود):', messageId);
+                    hideTypingIndicator();
+                    return;
+                }
+
+                // إذا كانت الرسالة من الإدمن ولها معرف، فهي نسخة من الخادم
+                if (isAdmin && messageId) {
+                    // تحديث الرسالة المؤقتة إذا وجدت
+                    updateTempMessage(messageId, message, time);
+                    hideTypingIndicator();
+                    return;
+                }
+
+                // إذا كانت الرسالة من الإدمن ولا يوجد معرف، قد تكون تكراراً
+                if (isAdmin && !messageId) {
+                    // التحقق من وجود رسالة مشابهة حديثة
+                    if (isDuplicateMessage(message, time, true)) {
+                        console.log('تم تجاهل رسالة مكررة من الإدمن:', message);
+                        hideTypingIndicator();
+                        return;
+                    }
+                }
+
+                // إذا كانت الرسالة من المستخدم، إضافتها مباشرة
+                if (!isAdmin) {
+                    addMessageToChat(message, false, time, senderId, messageId);
+                    hideTypingIndicator();
+                    return;
+                }
+
+                // إضافة الرسالة الجديدة (إذا مرت جميع الشروط)
+                addMessageToChat(message, isAdmin, time, senderId, messageId);
+                hideTypingIndicator();
+            });
+
+            // مؤشر كتابة المستخدم
+            connection.on("UserTyping", function (chatId, userId) {
+                if (chatId === currentChatId && userId === otherUserId) {
+                    const typingIndicator = document.getElementById('typingIndicator');
+                    if (typingIndicator) {
+                        typingIndicator.style.display = 'block';
+
+                        // إخفاء المؤشر بعد 3 ثواني
+                        setTimeout(() => {
+                            if (typingIndicator) typingIndicator.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            });
+
+            // أحداث الاتصال
+            connection.onreconnecting(error => {
+                console.log('إعادة الاتصال...', error);
+                updateConnectionStatus('reconnecting', 'إعادة الاتصال...');
+            });
+
+            connection.onreconnected(connectionId => {
+                console.log('تم إعادة الاتصال');
+                updateConnectionStatus('connected', 'متصل');
+
+                // الانضمام للمحادثة مرة أخرى
+                if (connection && connection.state === signalR.HubConnectionState.Connected) {
+                    connection.invoke("JoinChat", currentChatId)
+                        .catch(err => console.error('خطأ في الانضمام للمحادثة:', err));
+                }
+            });
+
+            connection.onclose(error => {
+                console.log('تم إغلاق الاتصال', error);
+                updateConnectionStatus('disconnected', 'انقطع الاتصال');
+            });
+
+            // بدء الاتصال
+            connection.start()
+                .then(() => {
+                    console.log("✅ الإدمن متصل بـ SignalR");
+                    updateConnectionStatus('connected', 'متصل');
+
+                    // الانضمام للمحادثة - استخدام نفس الوظيفة مثل العميل
+                    return connection.invoke("JoinChat", currentChatId);
+                })
+                .then(() => {
+                    console.log("✅ الإدمن انضم للمحادثة: " + currentChatId);
+
+                    // إرسال رسالة ترحيب إذا لم تكن هناك رسائل
+                    const noMessages = document.getElementById('chatBox').querySelector('.text-center.text-muted');
+                    if (noMessages) {
+                        addSystemMessage('تم الاتصال بالمستخدم، يمكنك البدء في المحادثة');
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ خطأ اتصال الإدمن: ", err);
+                    updateConnectionStatus('disconnected', 'انقطع الاتصال');
+                    addSystemMessage('تعذر الاتصال بالخادم، يرجى تحديث الصفحة');
+                });
+        }
+
+        // التحقق مما إذا كانت الرسالة مكررة
+        function isDuplicateMessage(message, time, isAdmin = false) {
+            // تحديد فئة الرسائل للبحث فيها
+            const messageClass = isAdmin ? 'sent' : 'received';
+            const recentMessages = document.querySelectorAll(`.message-bubble.${messageClass}`);
+
+            const now = new Date();
+            const currentTime = now.getTime();
+
+            for (let msg of recentMessages) {
+                const content = msg.querySelector('.message-content').textContent;
+                const msgTimeText = msg.querySelector('.message-time').textContent;
+
+                // إذا كانت الرسالة مطابقة في المحتوى وكانت حديثة
+                if (content === message) {
+                    const msgTime = parseMessageTime(msgTimeText);
+                    const newTime = parseMessageTime(time);
+
+                    // إذا كان الفرق أقل من 5 ثواني، تعتبر مكررة
+                    if (Math.abs(msgTime - newTime) < 5000) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // تحويل وقت الرسالة إلى timestamp
+        function parseMessageTime(timeStr) {
+            const now = new Date();
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const messageTime = new Date(now);
+            messageTime.setHours(hours, minutes, 0, 0);
+
+            // إذا كان الوقت بعد منتصف الليل ولكن الآن قبل الظهر، فهو من اليوم السابق
+            if (messageTime > now && messageTime - now > 12 * 60 * 60 * 1000) {
+                messageTime.setDate(messageTime.getDate() - 1);
+            }
+
+            return messageTime.getTime();
+        }
+
+        // تحديث الرسالة المؤقتة بعد استلامها من الخادم
+        function updateTempMessage(messageId, message, time) {
+            // البحث في جميع الرسائل المؤقتة
+            for (let [tempId, tempData] of tempMessages) {
+                if (tempData.message === message) {
+                    const tempElement = document.querySelector(`[data-temp-id="${tempId}"]`);
+                    if (tempElement) {
+                        // تحديث المعرف
+                        tempElement.setAttribute('data-message-id', messageId);
+                        tempElement.removeAttribute('data-temp-id');
+
+                        // تحديث الوقت
+                        const timeSpan = tempElement.querySelector('.message-time');
+                        if (timeSpan && time) {
+                            timeSpan.textContent = time;
+                        }
+
+                        // تغيير الحالة من قيد الإرسال إلى تم الإرسال
+                        const bubble = tempElement.querySelector('.message-bubble');
+                        if (bubble) {
+                            bubble.classList.remove('sending');
+                            bubble.classList.add('sent-confirmed');
+                        }
+
+                        // تخزين معرف الرسالة لمنع التكرار
+                        sentMessageIds.add(parseInt(messageId));
+
+                        // إزالة من القائمة المؤقتة
+                        tempMessages.delete(tempId);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // إضافة رسالة للدردشة
+        function addMessageToChat(message, isAdmin, time = null, senderId = null, messageId = null) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `message-wrapper ${isAdmin ? 'admin-message' : 'user-message'} new-message`;
+
+            const messageDiv = document.createElement('div');
+
+            const now = new Date();
+            const displayTime = time || now.toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            if (isAdmin) {
+                messageDiv.className = 'message-bubble sent';
+
+                // إذا كانت رسالة جديدة بدون معرف، فهي مؤقتة
+                if (!messageId) {
+                    const tempId = 'temp_' + Date.now();
+                    messageWrapper.setAttribute('data-temp-id', tempId);
+                    messageDiv.classList.add('sending');
+
+                    // تخزين الرسالة المؤقتة
+                    tempMessages.set(tempId, {
+                        message: message,
+                        time: displayTime
+                    });
+                } else {
+                    messageWrapper.setAttribute('data-message-id', messageId);
+                    sentMessageIds.add(parseInt(messageId));
+                }
+            } else {
+                messageDiv.className = 'message-bubble received';
+                if (messageId) {
+                    messageWrapper.setAttribute('data-message-id', messageId);
+                    sentMessageIds.add(parseInt(messageId));
+                }
+            }
+
+            const statusIcon = isAdmin ?
+                '<small class="message-status ms-2"><i class="fas fa-check-circle text-success"></i></small>' : '';
+
+            messageDiv.innerHTML = `
+                <div class="message-content">${escapeHtml(message)}</div>
+                <div class="message-footer">
+                    <small class="message-time">${displayTime}</small>
+                    ${statusIcon}
+                </div>
+            `;
+
+            messageWrapper.appendChild(messageDiv);
+            chatBox.appendChild(messageWrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // إضافة رسالة نظامية
+        function addSystemMessage(text) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            const noMessages = chatBox.querySelector('.text-center.text-muted');
+            if (noMessages) noMessages.remove();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-system';
+            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${text}`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // تحديث حالة الاتصال
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (statusElement) {
+                statusElement.textContent = text;
+                statusElement.className = status;
+            }
+        }
+
+        // إرسال رسالة من الإدمن
+        function sendAdminMessage() {
+            if (isChatClosed) {
+                alert('لا يمكن إرسال رسائل في محادثة مغلقة');
+                return;
+            }
+
+            const input = document.getElementById('msgInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+            if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+                alert('الاتصال غير نشط. يرجى الانتظار...');
+                return;
+            }
+
+            // مسح حقل الإدخال أولاً
+            input.value = '';
+
+            // إضافة الرسالة المحلية فوراً (بعلامة قيد الإرسال)
+            addMessageToChat(message, true, null, currentUserId);
+
+            // إرسال الرسالة للخادم - استخدام نفس الوظيفة مثل العميل
+            connection.invoke("SendMessage", currentChatId, message)
+                .then(() => {
+                    // النجاح معالج في حدث ReceiveMessage
+                    console.log('تم إرسال الرسالة للخادم');
+                })
+                .catch(err => {
+                    console.error("❌ فشل إرسال الرسالة: ", err);
+
+                    // البحث عن الرسالة المؤقتة الأخيرة وتحديث حالتها إلى فاشلة
+                    const tempMessagesArray = Array.from(tempMessages.entries());
+                    if (tempMessagesArray.length > 0) {
+                        const [lastTempId, lastTempData] = tempMessagesArray[tempMessagesArray.length - 1];
+
+                        if (lastTempData.message === message) {
+                            const tempMsg = document.querySelector(`[data-temp-id="${lastTempId}"]`);
+                            if (tempMsg) {
+                                const bubble = tempMsg.querySelector('.message-bubble');
+                                if (bubble) {
+                                    bubble.classList.remove('sending');
+                                    bubble.classList.add('send-failed');
+
+                                    const timeSpan = bubble.querySelector('.message-time');
+                                    if (timeSpan) {
+                                        const warningIcon = document.createElement('i');
+                                        warningIcon.className = 'fas fa-exclamation-triangle';
+                                        warningIcon.title = 'فشل الإرسال';
+                                        timeSpan.appendChild(warningIcon);
+                                    }
+
+                                    // إزالة من القائمة المؤقتة
+                                    tempMessages.delete(lastTempId);
+                                }
+                            }
+                        }
+                    }
+
+                    addSystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
+
+                    // محاولة إعادة الإرسال بعد 3 ثواني
+                    setTimeout(() => {
+                        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+                            retrySendMessage(message);
+                        }
+                    }, 3000);
+                });
+        }
+
+        // إعادة محاولة إرسال الرسالة
+        function retrySendMessage(message) {
+            // إرسال الرسالة مرة أخرى
+            connection.invoke("SendMessage", currentChatId, message)
+                .then(() => {
+                    console.log('تمت إعادة إرسال الرسالة بنجاح');
+                })
+                .catch(err => {
+                    console.error("❌ فشل إعادة إرسال الرسالة: ", err);
+                });
+        }
+
+        // إغلاق المحادثة
+        function closeChat() {
+            if (isChatClosed) {
+                alert('المحادثة مغلقة بالفعل');
+                return;
+            }
+
+            if (confirm('هل تريد إغلاق هذه المحادثة نهائياً؟ لن يتمكن المستخدم من إرسال رسائل جديدة.')) {
+                fetch(`/Admin/Chat/CloseSession?sessionId=${currentChatId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('تم إغلاق المحادثة بنجاح');
+                        window.location.reload();
+                    } else {
+                        alert('حدث خطأ أثناء إغلاق المحادثة');
+                    }
+                })
+                .catch(err => {
+                    console.error('خطأ في إغلاق المحادثة:', err);
+                    alert('حدث خطأ في الشبكة');
+                });
+            }
+        }
+
+        // إشعار الكتابة
+        function notifyTyping() {
+            if (!isTyping && connection && connection.state === signalR.HubConnectionState.Connected && !isChatClosed) {
+                isTyping = true;
+                connection.invoke("NotifyTyping", currentChatId, currentUserId)
+                    .catch(err => console.error('خطأ في إرسال إشعار الكتابة:', err));
+
+                setTimeout(() => {
+                    isTyping = false;
+                }, 1000);
+            }
+        }
+
+        // التهريب من HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // التحقق من صحة البيانات
+            if (!currentUserId || currentUserId === '') {
+                alert('خطأ: لم يتم التعرف على المستخدم');
+                window.location.href = '/Account/Login';
+                return;
+            }
+
+            if (!currentChatId || currentChatId === '0') {
+                alert('خطأ: لم يتم تحديد محادثة');
+                window.location.href = '/Admin/Chat';
+                return;
+            }
+
+            // إذا كانت المحادثة غير مغلقة، نقوم بالاتصال
+            if (!isChatClosed) {
+                initializeAdminConnection();
+            }
+
+            // إعداد الأحداث
+            const btnSend = document.getElementById('btnSend');
+            const btnCloseChat = document.getElementById('btnCloseChat');
+            const msgInput = document.getElementById('msgInput');
+
+            if (btnSend) btnSend.addEventListener('click', sendAdminMessage);
+            if (btnCloseChat) btnCloseChat.addEventListener('click', closeChat);
+
+            if (msgInput && !isChatClosed) {
+                msgInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendAdminMessage();
+                    }
+                });
+
+                // الكشف عن الكتابة عند الكتابة
+                msgInput.addEventListener('input', notifyTyping);
+            }
+
+            // التركيز على حقل الإدخال إذا لم تكن المحادثة مغلقة
+            setTimeout(() => {
+                if (msgInput && !isChatClosed) msgInput.focus();
+            }, 500);
+        });
     </script>
 }

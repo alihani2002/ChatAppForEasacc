@@ -28,6 +28,13 @@ namespace Chat.WebUI.Controllers
             var session = await _chatAdminService.GetSessionWithMessagesAsync(id);
             return View(session);
         }
+
+        public async Task<IActionResult> UserChats(string userId)
+        {
+            var sessions = await _chatAdminService.GetSessionsByUserAsync(userId);
+            return PartialView("_UserChatHistory", sessions);
+        }
+      
     }
 
 }

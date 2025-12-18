@@ -6,7 +6,7 @@ namespace Chat.Application.Interfaces.Services.Chat
     {
         Task<ChatSession> CreateSessionAsync(string userId);
         Task<Message> SendMessageAsync(int sessionId, string senderId, string content);
-        Task CloseSessionAsync(int sessionId);
+        Task CloseSessionAsync(string userId);
         Task<IEnumerable<Message>> GetMessagesAsync(int sessionId);
     }
 }

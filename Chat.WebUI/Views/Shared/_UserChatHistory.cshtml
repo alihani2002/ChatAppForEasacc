@@ -1,0 +1,59 @@
+﻿@model List<Chat.Application.ChatSessionDetailsVM>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No previous chat sessions.</div>
+}
+else
+{
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Session</th>
+                <th>Status</th>
+                <th>Messages</th>
+                <th>Last Activity</th>
+                <th class="text-end">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in Model)
+            {
+                <tr>
+                    <td class="fw-bold">
+                        #@session.SessionId
+                    </td>
+
+                    <td>
+                        @if (session.IsClosed)
+                        {
+                            <span class="badge bg-secondary">Closed</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Open</span>
+                        }
+                </td>
+
+                <td>
+                    @session.Messages.Count
+                </td>
+
+                <td>
+                    @(session.Messages.LastOrDefault()?.CreatedOn
+                                    .ToString("yyyy-MM-dd HH:mm") ?? "N/A")
+                    </td>
+
+                    <td class="text-end">
+                        <a asp-action="Open"
+                           asp-controller="Chat"
+                           asp-route-id="@session.SessionId"
+                           class="btn btn-sm btn-primary">
+                            Open Chat
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

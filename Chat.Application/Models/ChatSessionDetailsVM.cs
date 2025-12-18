@@ -11,6 +11,7 @@ namespace Chat.Application
 
         public bool IsClosed { get; set; }
 
+        public DateTime CreatedOn { get; set; }
         public List<MessageVM> Messages { get; set; } = new();
     }
 }

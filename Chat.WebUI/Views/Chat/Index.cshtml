@@ -1,41 +1,152 @@
 ﻿@model List<Chat.Application.ChatSessionVM>
 
+@{
+    ViewData["Title"] = "Chat Dashboard";
+}
 
-<h2>Chat Sessions</h2>
+<div class="container-fluid py-4">
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Status</th>
-            <th>Messages</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var session in Model)
-        {
-            <tr>
-                <td>@session.UserId</td>
-                <td>
-                    @if (session.IsClosed)
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Admin Chat Dashboard</h2>
+            <small class="text-muted">Active customer conversations</small>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+            Refresh
+        </button>
+        
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Messages</th>
+                        <th>Last Activity</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="chatTable">
+
+                    @foreach (var session in Model)
                     {
-                        <span class="badge bg-danger">Closed</span>
+                        <tr data-user="@session.UserId"
+                            data-session="@session.Id">
+
+                            <td class="fw-bold">@session.UserId</td>
+
+                            <td>
+                                @if (session.IsClosed)
+                                {
+                                    <span class="badge bg-secondary">Closed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Live</span>
+                                }
+                            </td>
+
+                            <td>@session.MessagesCount</td>
+
+                            <td>
+                                @(session.LastMessageOn?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-action="Open"
+                                   asp-route-id="@session.Id"
+                                   class="btn btn-sm btn-primary">
+                                    Open
+                                </a>
+
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="openHistory('@session.UserId')">
+                                    History
+                                </button>
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <span class="badge bg-success">Open</span>
-                    }
-                </td>
-                <td>@session.MessagesCount</td>
-                <td>
-                    <a class="btn btn-primary"
-                       asp-action="Open"
-                       asp-route-id="@session.Id">
-                        Open Chat
-                    </a>
-                </td>
-            </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- =================== History Modal =================== -->
+
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Chat History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="historyBody">
+                Loading...
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        /* ===============================
+           Show last session per user only
+        ================================ */
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const rows = document.querySelectorAll("#chatTable tr");
+            const latestSessionPerUser = {};
+
+            rows.forEach(row => {
+                const userId = row.dataset.user;
+                const sessionId = parseInt(row.dataset.session);
+
+                if (!latestSessionPerUser[userId] ||
+                    latestSessionPerUser[userId].sessionId < sessionId) {
+
+                    latestSessionPerUser[userId] = {
+                        sessionId: sessionId,
+                        row: row
+                    };
+                }
+            });
+
+            rows.forEach(row => {
+                const userId = row.dataset.user;
+                const sessionId = parseInt(row.dataset.session);
+
+                if (latestSessionPerUser[userId].sessionId !== sessionId) {
+                    row.remove(); // ❌ remove old sessions
+                }
+            });
+        });
+
+
+        /* ===============================
+           Open history popup
+        ================================ */
+
+               function openHistory(userId) {
+            fetch(`/Chat/UserChats?userId=${userId}`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("historyBody").innerHTML = html;
+
+                    const modal = new bootstrap.Modal(
+                        document.getElementById("historyModal")
+                    );
+                    modal.show();
+                });
         }
-    </tbody>
-</table>
+    </script>
+}

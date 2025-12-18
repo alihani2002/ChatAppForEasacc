@@ -1,0 +1,28 @@
+﻿.chat-dashboard {
+    display: flex;
+    height: 90vh;
+}
+
+.chat-sidebar {
+    width: 260px;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+}
+
+.chat-user {
+    display: block;
+    padding: 8px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: black;
+}
+
+    .chat-user.active {
+        background: #007bff;
+        color: white;
+    }
+
+.chat-content {
+    flex: 1;
+    padding: 10px;
+}
