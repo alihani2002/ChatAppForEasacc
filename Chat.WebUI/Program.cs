@@ -20,11 +20,6 @@ builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddWebServices(builder);
 
-// MVC
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-});
 
 builder.Services.AddRazorPages();
 
@@ -59,6 +54,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+
 
 app.UseAuthentication();
 app.UseAuthorization();

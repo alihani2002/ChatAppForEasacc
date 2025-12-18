@@ -1,4 +1,6 @@
 ﻿using Chat.Infrastructure.Repositories;
+using Chat.Infrastructure.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chat.Infrastructure
 {
@@ -17,6 +19,8 @@ namespace Chat.Infrastructure
             // Register Infrastructure Dependencies
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<IUserIdProvider, UserIdProvider>();
+
 
             return services;
         }

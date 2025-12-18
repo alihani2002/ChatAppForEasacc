@@ -1,0 +1,26 @@
+﻿@model Chat.Core.Entities.ChatSession
+
+<h3>Live Support</h3>
+
+<div id="chatBox" class="border p-3 mb-3" style="height:350px; overflow-y:auto;"></div>
+
+<div class="input-group">
+    <input id="msgInput" class="form-control" placeholder="Type message..." />
+    <button id="btnSend" class="btn btn-success">Send</button>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        var currentChatId = "@Model.Id";
+    </script>
+    <script src="~/js/chat.js"></script>
+
+    <script>
+        document.getElementById("btnSend").onclick = function () {
+            const input = document.getElementById("msgInput");
+            sendMessage(currentChatId, input.value);
+            input.value = "";
+        };
+    </script>
+}

@@ -1,0 +1,41 @@
+﻿@model List<Chat.Application.ChatSessionVM>
+
+
+<h2>Chat Sessions</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Status</th>
+            <th>Messages</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var session in Model)
+        {
+            <tr>
+                <td>@session.UserId</td>
+                <td>
+                    @if (session.IsClosed)
+                    {
+                        <span class="badge bg-danger">Closed</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Open</span>
+                    }
+                </td>
+                <td>@session.MessagesCount</td>
+                <td>
+                    <a class="btn btn-primary"
+                       asp-action="Open"
+                       asp-route-id="@session.Id">
+                        Open Chat
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

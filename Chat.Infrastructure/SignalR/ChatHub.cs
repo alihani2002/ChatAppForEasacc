@@ -1,6 +1,8 @@
 ﻿using Chat.Application.Interfaces.Services.Chat;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
+[Authorize]
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
@@ -31,7 +33,8 @@ public class ChatHub : Hub
         await Clients.Group(chatId).SendAsync(
             "ReceiveMessage",
             senderId,
-            savedMessage.Content
+            savedMessage.Content,
+            savedMessage.CreatedOn.ToString("HH:mm")
         );
     }
 

@@ -1,0 +1,34 @@
+﻿@model Chat.Application.ChatSessionDetailsVM
+
+<h3>Chat with User: @Model.UserId</h3>
+
+<div id="chatBox" class="border p-3 mb-3" style="height:350px; overflow-y:auto;">
+    @foreach (var msg in Model.Messages)
+    {
+        <div class="mb-2">
+            <strong>@msg.SenderId</strong>: @msg.Content
+            <small class="text-muted">@msg.CreatedOn.ToString("HH:mm")</small>
+        </div>
+    }
+</div>
+
+<div class="input-group">
+    <input id="msgInput" class="form-control" placeholder="Type message..." />
+    <button id="btnSend" class="btn btn-primary">Send</button>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        var currentChatId = "@Model.SessionId";
+    </script>
+    <script src="~/js/chat.js"></script>
+
+    <script>
+        document.getElementById("btnSend").onclick = function () {
+            const input = document.getElementById("msgInput");
+            sendMessage(currentChatId, input.value);
+            input.value = "";
+        };
+    </script>
+}
