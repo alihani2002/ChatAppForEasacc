@@ -15,7 +15,8 @@ namespace Chat.API.Seeds
                 UserName = adminEmail,
                 Email = adminEmail,
                 FullName = "Admin",
-                EmailConfirmed = true
+                EmailConfirmed = true ,
+                Role = "Admin",
             };
 
             var result = await userManager.CreateAsync(admin, "P@ssword123");
