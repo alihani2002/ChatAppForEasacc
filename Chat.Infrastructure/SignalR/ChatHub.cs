@@ -2,22 +2,35 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-[Authorize] // هذا السطر يعني أنه لا يسمح لأي شخص بالاتصال بهذا الـ Hub إلا إذا كان مسجلاً للدخول (Authenticated)
-public class ChatHub : Hub // تعريف كلاس اسمه ChatHub ويرث من الكلاس الأساسي Hub التابع لـ SignalR
+[Authorize]
+public class ChatHub : Hub
 {
-    private readonly IChatService _chatService; // تعريف متغير داخلي للتعامل مع خدمات الشات (مثل حفظ الرسائل)
+    private readonly IChatService _chatService;
+    private static readonly Dictionary<string, string> _userConnections = new();
+    private static readonly Dictionary<string, HashSet<string>> _typingUsers = new();
 
-    // الـ Constructor: هنا نقوم بـ "حقن" (Inject) خدمة الشات لاستخدامها داخل الكلاس
     public ChatHub(IChatService chatService)
     {
         _chatService = chatService;
     }
 
+    public override async Task OnConnectedAsync()
+    {
+        var userId = Context.UserIdentifier;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            _userConnections[Context.ConnectionId] = userId;
+            await base.OnConnectedAsync();
+        }
+    }
+
     public async Task JoinChat(string chatId)
     {
-        // يقوم بإضافة "اتصال المستخدم الحالي" إلى "مجموعة" محددة برقم المحادثة
-        // هذا يسمح لنا بإرسال رسائل لكل الموجودين في هذه المحادثة فقط
         await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
+
+        // إرسال إشعار دخول المستخدم
+        var userId = Context.UserIdentifier;
+        await Clients.Group(chatId).SendAsync("UserJoined", userId);
     }
 
     public async Task SendMessage(string chatId, string message)
@@ -34,52 +47,79 @@ public class ChatHub : Hub // تعريف كلاس اسمه ChatHub ويرث من
             message
         );
 
-        // إرسال الرسالة لجميع المشتركين في المحادثة مع معرف الرسالة
+        // إرسال الرسالة لجميع المشتركين في المحادثة
         await Clients.Group(chatId).SendAsync(
             "ReceiveMessage",
             senderId,
             savedMessage.Content,
             savedMessage.CreatedOn.ToString("HH:mm"),
-            savedMessage.Id // ← إرجاع معرف الرسابة
+            savedMessage.Id
         );
     }
 
-    // وظيفة مشابهة لـ JoinChat ولكنها تستخدم كلمة "chat-" قبل الرقم لتمييز المجموعات الخاصة بالجلسات
-    public async Task JoinSession(string sessionId)
+    // مؤشر الكتابة
+    public async Task StartTyping(string chatId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"chat-{sessionId}");
+        var userId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(userId)) return;
+
+        // تخزين المستخدم الذي يكتب
+        if (!_typingUsers.ContainsKey(chatId))
+        {
+            _typingUsers[chatId] = new HashSet<string>();
+        }
+
+        if (!_typingUsers[chatId].Contains(userId))
+        {
+            _typingUsers[chatId].Add(userId);
+
+            // إرسال إشعار للجميع عدا المرسل
+            await Clients.Group(chatId).SendAsync("UserStartedTyping", chatId, userId);
+        }
     }
 
-    // وظيفة لإرسال رسالة سريعة داخل الجلسة دون حفظها (أو حسب منطق العمل)
-    public async Task SendMessageToSession(string sessionId, string message)
+    public async Task StopTyping(string chatId)
     {
-        await Clients.Group($"chat-{sessionId}")
-            .SendAsync("ReceiveMessage", Context.UserIdentifier, message);
+        var userId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(userId)) return;
+
+        // إزالة المستخدم من القائمة
+        if (_typingUsers.ContainsKey(chatId))
+        {
+            _typingUsers[chatId].Remove(userId);
+
+            // إرسال إشعار إيقاف الكتابة
+            await Clients.Group(chatId).SendAsync("UserStoppedTyping", chatId, userId);
+        }
     }
 
     public async Task LeaveChat(string chatId)
     {
-        // إزالة المستخدم من المجموعة لكي لا تصله تنبيهات أو رسائل جديدة من هذه المحادثة
+        // إزالة المستخدم من المجموعة
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
+
+        // إرسال إشعار خروج
+        var userId = Context.UserIdentifier;
+        await Clients.Group(chatId).SendAsync("UserLeft", userId);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = Context.UserIdentifier;
+        var connectionId = Context.ConnectionId;
 
+        // إزالة من القوائم
+        if (_userConnections.ContainsKey(connectionId))
+        {
+            _userConnections.Remove(connectionId);
+        }
+
+        // إغلاق الجلسة
         if (!string.IsNullOrEmpty(userId))
         {
-            // استدعاء السيرفس لإغلاق الجلسة فور انقطاع الاتصال (Refresh أو إغلاق الصفحة)
             await _chatService.CloseSessionAsync(userId);
         }
 
         await base.OnDisconnectedAsync(exception);
-    }
-
-    // إضافة هذه الوظيفة إلى ChatHub
-    public async Task NotifyTyping(string chatId, string userId)
-    {
-        // إرسال إشعار الكتابة لكل الموجودين في المحادثة عدا المرسل
-        await Clients.Group(chatId).SendAsync("UserTyping", chatId, userId);
     }
 }

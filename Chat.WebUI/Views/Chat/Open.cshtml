@@ -8,50 +8,69 @@
     var isClosed = Model.IsClosed;
 }
 
-
 <div class="admin-chat-container">
     <!-- رأس المحادثة -->
-    <div class="admin-chat-header bg-gradient bg-dark text-white p-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle fa-2x"></i>
+    <div class="admin-chat-header">
+        <div class="header-content">
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
                 </div>
-                <div>
-                    <h5 class="mb-0">محادثة مع المستخدم</h5>
-                    <div class="user-info">
-                        <small>
-                            <i class="fas fa-user me-1"></i> ID: @Model.UserId
-                        </small>
-                        <small class="ms-3">
-                            <i class="fas fa-calendar me-1"></i> بدأت: @Model.CreatedOn.ToString("yyyy-MM-dd HH:mm")
-                        </small>
-                        <small class="ms-3">
-                            <i class="fas fa-circle @(isClosed ? "text-danger" : "text-success") me-1"></i>
-                            @(isClosed ? "مغلقة" : "نشطة")
-                        </small>
+                <div class="info">
+                    <h4 class="mb-1">محادثة الدعم</h4>
+                    <div class="details">
+                        <span class="detail-item">
+                            <i class="fas fa-user"></i>
+                            <span>ID: @Model.UserId</span>
+                        </span>
+                        <span class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>@Model.CreatedOn.ToString("yyyy/MM/dd HH:mm")</span>
+                        </span>
+                        <span class="detail-item status">
+                            <i class="fas fa-circle @(isClosed ? "closed" : "active")"></i>
+                            <span>@(isClosed ? "مغلقة" : "نشطة")</span>
+                        </span>
                     </div>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning text-dark">
-                    <i class="fas fa-hashtag"></i> @Model.SessionId
+            <div class="header-actions">
+                <span class="chat-id">
+                    <i class="fas fa-hashtag"></i>
+                    <span>#@Model.SessionId</span>
                 </span>
-            
-                <a href="/Chat/" class="btn btn-sm btn-light">
-                    <i class="fas fa-arrow-right me-1"></i> العودة
+                <button id="btnCloseChat" class="btn-action" title="إغلاق المحادثة" @(isClosed ? "disabled" : "")>
+                    <i class="fas fa-lock"></i>
+                    <span>إغلاق</span>
+                </button>
+                <a href="/Chat/" class="btn-action back-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>العودة</span>
                 </a>
             </div>
         </div>
+
+        <!-- مؤشر الكتابة -->
+        <div id="typingIndicator" class="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span class="typing-text"></span>
+        </div>
     </div>
 
-    <!-- رسائل المحادثة -->
-    <div id="chatBox" class="admin-chat-messages p-4">
+    <!-- نافذة المحادثة -->
+    <div id="chatBox" class="admin-chat-messages">
         @if (!Model.Messages.Any())
         {
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-comments fa-3x mb-3"></i>
-                <p>لا توجد رسائل بعد</p>
+            <div class="empty-chat">
+                <div class="empty-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h5>لا توجد رسائل بعد</h5>
+                <p>ابدأ المحادثة مع المستخدم</p>
             </div>
         }
         else
@@ -59,16 +78,16 @@
             @foreach (var msg in Model.Messages)
             {
                 var isAdmin = msg.SenderId == adminId;
-                <div class="message-wrapper @(isAdmin ? "admin-message" : "user-message")" data-message-id="@msg.Id">
-                    <div class="message-bubble @(isAdmin ? "sent" : "received")">
-                        <div class="message-content">@msg.Content</div>
-                        <div class="message-footer">
-                            <small class="message-time">@msg.CreatedOn.ToString("HH:mm")</small>
+                <div class="message-wrapper @(isAdmin ? "message-sent" : "message-received")" data-message-id="@msg.Id">
+                    <div class="message-content">
+                        <div class="message-text">@msg.Content</div>
+                        <div class="message-meta">
+                            <span class="message-time">@msg.CreatedOn.ToString("HH:mm")</span>
                             @if (isAdmin)
                             {
-                                <small class="message-status ms-2">
-                                    <i class="fas fa-check-circle text-success"></i>
-                                </small>
+                                <span class="message-status">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
                             }
                         </div>
                     </div>
@@ -78,282 +97,612 @@
     </div>
 
     <!-- منطقة الرد -->
-    <div class="admin-chat-input p-3 bg-light border-top">
-        <div class="row g-2 align-items-center">
-            <div class="col">
-                <div class="input-group">
-                    <textarea id="msgInput" class="form-control" rows="2"
-                              placeholder="اكتب ردك هنا..." @(isClosed ? "disabled" : "")></textarea>
-                    <button id="btnSend" class="btn btn-primary px-4" @(isClosed ? "disabled" : "")>
-                        <i class="fas fa-paper-plane me-2"></i> إرسال
-                    </button>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-outline-secondary" title="إرفاق ملف" @(isClosed ? "disabled" : "")>
+    <div class="admin-chat-input">
+        <div class="input-wrapper">
+            <div class="textarea-container">
+                <textarea id="msgInput"
+                          class="message-input"
+                          placeholder="اكتب ردك هنا..."
+                          rows="2"
+                          maxlength="1000"
+                          @(isClosed ? "disabled" : "")></textarea>
+                <div class="input-tools">
+                    <button type="button" class="tool-btn" title="إرفاق ملف" @(isClosed ? "disabled" : "")>
                         <i class="fas fa-paperclip"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary" title="إرسال رد سريع" @(isClosed ? "disabled" : "")>
+                    <button type="button" class="tool-btn" title="إرسال رد سريع" @(isClosed ? "disabled" : "")>
                         <i class="fas fa-bolt"></i>
                     </button>
                 </div>
             </div>
+            <button id="btnSend" class="send-btn" @(isClosed ? "disabled" : "")>
+                <i class="fas fa-paper-plane"></i>
+                <span>إرسال</span>
+            </button>
         </div>
-        <div class="mt-2 d-flex justify-content-between align-items-center">
-            <small class="text-muted">
-                <i class="fas fa-info-circle me-1"></i>
-                <span id="connectionStatus">جاري الاتصال...</span>
-            </small>
-            <small id="typingIndicator" class="text-primary fw-bold" style="display:none;">
-                <i class="fas fa-pencil-alt me-1"></i> المستخدم يكتب...
-            </small>
+        <div class="input-footer">
+            <div class="connection-status">
+                <span class="status-dot" id="statusDot"></span>
+                <small id="connectionStatus">@(isClosed ? "المحادثة مغلقة" : "جاري الاتصال...")</small>
+            </div>
+            <div class="input-hints">
+                <small class="hint">Shift+Enter للسطر الجديد</small>
+            </div>
         </div>
     </div>
- 
-    <style>
-        .admin-chat-container {
-            max-width: 1200px;
-            margin: 1rem auto;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
+</div>
+
+<style>
+    /* متغيرات الألوان */
+    :root {
+        --admin-primary: #2c3e50;
+        --admin-secondary: #34495e;
+        --admin-accent: #3498db;
+        --admin-success: #27ae60;
+        --admin-warning: #f39c12;
+        --admin-danger: #e74c3c;
+        --admin-light: #ecf0f1;
+        --admin-dark: #2c3e50;
+        --admin-gray: #95a5a6;
+        --admin-bg: #f8f9fa;
+        --admin-card: #ffffff;
+    }
+
+    /* التصميم الرئيسي */
+    .admin-chat-container {
+        width: 100%;
+        max-width: 1200px;
+        height: 90vh;
+        max-height: 900px;
+        margin: 2rem auto;
+        background: var(--admin-card);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-family: 'Segoe UI', 'Cairo', sans-serif;
+    }
+
+    /* رأس المحادثة */
+    .admin-chat-header {
+        background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+        color: white;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .info h4 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .details {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+        .detail-item i {
+            font-size: 0.8rem;
+        }
+
+    .status .fa-circle.active {
+        color: #2ecc71;
+    }
+
+    .status .fa-circle.closed {
+        color: #e74c3c;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chat-id {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-action {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+        .btn-action:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* مؤشر الكتابة */
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        width: fit-content;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
             background: white;
-        }
-
-        .admin-chat-header {
-            background: linear-gradient(135deg, #343a40 0%, #212529 100%);
-        }
-
-        .user-avatar {
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.1);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            animation: typingBounce 1.4s infinite ease-in-out both;
         }
 
-        .user-info {
-            opacity: 0.9;
+            .typing-dots span:nth-child(1) {
+                animation-delay: -0.32s;
+            }
+
+            .typing-dots span:nth-child(2) {
+                animation-delay: -0.16s;
+            }
+
+    @@keyframes typingBounce {
+        0%, 80%, 100% {
+            transform: scale(0);
         }
 
-        .admin-chat-messages {
-            height: 600px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            padding: 20px !important;
-            display: flex;
+        40% {
+            transform: scale(1);
+        }
+    }
+
+    .typing-text {
+        font-weight: 500;
+    }
+
+    /* نافذة المحادثة */
+    .admin-chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: var(--admin-bg);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* حالة عدم وجود رسائل */
+    .empty-chat {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--admin-gray);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: var(--admin-gray);
+        opacity: 0.5;
+    }
+
+    .empty-chat h5 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: var(--admin-dark);
+    }
+
+    .empty-chat p {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    /* رسائل المحادثة */
+    .message-wrapper {
+        display: flex;
+        max-width: 70%;
+        animation: slideIn 0.3s ease;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message-sent {
+        margin-left: auto;
+    }
+
+    .message-received {
+        margin-right: auto;
+    }
+
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        max-width: 100%;
+        word-break: break-word;
+        line-height: 1.5;
+    }
+
+    .message-sent .message-content {
+        background: var(--admin-accent);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-received .message-content {
+        background: white;
+        color: var(--admin-dark);
+        border: 1px solid var(--admin-light);
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .message-text {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .message-meta {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .message-status {
+        font-size: 0.7rem;
+    }
+
+    .message-sent .message-status i {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* منطقة الرد */
+    .admin-chat-input {
+        border-top: 1px solid var(--admin-light);
+        background: white;
+        padding: 15px 20px;
+    }
+
+    .input-wrapper {
+        display: flex;
+        gap: 12px;
+    }
+
+    .textarea-container {
+        flex: 1;
+        position: relative;
+    }
+
+    .message-input {
+        width: 100%;
+        border: 2px solid var(--admin-light);
+        border-radius: 12px;
+        padding: 12px 50px 12px 15px;
+        font-size: 0.95rem;
+        resize: none;
+        min-height: 50px;
+        max-height: 150px;
+        transition: all 0.3s ease;
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+    }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--admin-accent);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .message-input:disabled {
+            background: var(--admin-light);
+            cursor: not-allowed;
+        }
+
+    .input-tools {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .tool-btn {
+        background: transparent;
+        border: none;
+        color: var(--admin-gray);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .tool-btn:hover:not(:disabled) {
+            background: var(--admin-light);
+            color: var(--admin-accent);
+        }
+
+        .tool-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .send-btn {
+        background: var(--admin-accent);
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        min-width: 100px;
+        justify-content: center;
+    }
+
+        .send-btn:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            background: var(--admin-gray);
+            cursor: not-allowed;
+        }
+
+    /* تذييل منطقة الإدخال */
+    .input-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--admin-gray);
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .connection-status .status-dot.connected {
+        background: #27ae60;
+    }
+
+    .connection-status .status-dot.connecting {
+        background: #f39c12;
+        animation: blink 1s infinite;
+    }
+
+    .connection-status .status-dot.disconnected {
+        background: #e74c3c;
+    }
+
+    #connectionStatus.connected {
+        color: #27ae60;
+    }
+
+    #connectionStatus.connecting {
+        color: #f39c12;
+    }
+
+    #connectionStatus.disconnected {
+        color: #e74c3c;
+    }
+
+    .input-hints {
+        text-align: right;
+    }
+
+    .hint {
+        font-size: 0.8rem;
+        color: var(--admin-gray);
+    }
+
+    /* الرسائل الجديدة */
+    .message-wrapper.new-message {
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @@keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* رسالة قيد الإرسال */
+    .message-content.sending {
+        opacity: 0.7;
+        border-right: 3px solid var(--admin-warning);
+    }
+
+    /* رسالة تم إرسالها */
+    .message-content.sent-confirmed {
+        border-right: 3px solid var(--admin-success);
+    }
+
+    /* رسالة فشل إرسالها */
+    .message-content.send-failed {
+        border-right: 3px solid var(--admin-danger);
+        opacity: 0.8;
+    }
+
+    /* أيقونة التأكيد */
+    .fa-check-circle {
+        color: #27ae60;
+        font-size: 0.7rem;
+    }
+
+    /* التمرير */
+    .admin-chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .admin-chat-messages::-webkit-scrollbar-track {
+        background: var(--admin-light);
+        border-radius: 4px;
+    }
+
+    .admin-chat-messages::-webkit-scrollbar-thumb {
+        background: var(--admin-gray);
+        border-radius: 4px;
+    }
+
+        .admin-chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #7f8c8d;
+        }
+
+    /* تصميم للجوال */
+    @@media (max-width: 768px) {
+        .admin-chat-container {
+            margin: 0;
+            border-radius: 0;
+            height: 100vh;
+            max-height: none;
+        }
+
+        .header-content {
             flex-direction: column;
+            align-items: flex-start;
             gap: 15px;
         }
 
+        .header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .details {
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .message-wrapper {
-            display: flex;
-            max-width: 80%;
+            max-width: 90%;
         }
 
-        .admin-message {
-            margin-left: auto;
-            justify-content: flex-end;
+        .input-wrapper {
+            flex-direction: column;
         }
 
-        .user-message {
-            margin-right: auto;
-            justify-content: flex-start;
-        }
-
-        .message-bubble {
-            padding: 12px 16px;
-            border-radius: 18px;
-            max-width: 100%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            position: relative;
-        }
-
-            .message-bubble.sent {
-                background: linear-gradient(135deg, #0d6efd, #0a58ca);
-                color: white;
-                border-bottom-right-radius: 4px;
-            }
-
-            .message-bubble.received {
-                background: white;
-                color: #212529;
-                border: 1px solid #dee2e6;
-                border-bottom-left-radius: 4px;
-            }
-
-        .message-content {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .message-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-top: 5px;
-        }
-
-        .message-time {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-
-        .message-status {
-            font-size: 0.7rem;
-        }
-
-        .admin-chat-input {
-            background: white;
-        }
-
-        #msgInput {
-            border-radius: 8px;
-            border: 2px solid #dee2e6;
-            resize: none;
+        .send-btn {
+            width: 100%;
+            min-width: auto;
             padding: 12px;
-            transition: all 0.3s;
         }
 
-            #msgInput:focus {
-                border-color: #0d6efd;
-                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-            }
-
-        #btnSend {
-            border-radius: 8px;
-            margin-left: 10px;
-            height: 100%;
+        .textarea-container {
+            width: 100%;
         }
-
-        /* الرسائل الجديدة */
-        .new-message {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* الرسالة قيد الإرسال */
-        .sending {
-            opacity: 0.7;
-            border-right: 3px solid #ffc107 !important;
-        }
-
-        /* رسالة تم إرسالها */
-        .sent-confirmed {
-            border-right: 3px solid #28a745 !important;
-        }
-
-        /* رسالة فشل إرسالها */
-        .send-failed {
-            border-right: 3px solid #dc3545 !important;
-            opacity: 0.8;
-        }
-
-        /* أيقونة التأكيد */
-        .fa-check-circle {
-            color: #28a745;
-            font-size: 0.7rem;
-            margin-left: 5px;
-        }
-
-        /* أيقونة التحذير */
-        .fa-exclamation-triangle {
-            color: #ffc107;
-            font-size: 0.7rem;
-            margin-left: 5px;
-        }
-
-        @@keyframes popIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* مؤشر الكتابة */
-        #typingIndicator {
-            animation: blink 1.5s infinite;
-        }
-
-        @@keyframes blink {
-            0%, 100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        /* زر الإغلاق */
-        #btnCloseChat:hover:not(:disabled) {
-            background-color: rgba(255,255,255,0.2);
-        }
-
-        /* التمرير */
-        .admin-chat-messages::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .admin-chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .admin-chat-messages::-webkit-scrollbar-thumb {
-            background: #b0b0b0;
-            border-radius: 10px;
-        }
-
-            .admin-chat-messages::-webkit-scrollbar-thumb:hover {
-                background: #888;
-            }
-
-        /* حالة الاتصال */
-        #connectionStatus.connected {
-            color: #28a745;
-        }
-
-        #connectionStatus.disconnected {
-            color: #dc3545;
-        }
-
-        #connectionStatus.reconnecting {
-            color: #ffc107;
-        }
-
-        /* تصميم للجوال */
-        @@media (max-width: 768px) {
-            .admin-chat-container {
-                margin: 0;
-                border-radius: 0;
-                height: 100vh;
-            }
-
-
-            .message-wrapper {
-                max-width: 90%;
-            }
-
-            .user-info {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-
-                .user-info small.ms-3 {
-                    margin-left: 0 !important;
-                }
-        }
-    </style>
+    }
+</style>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
@@ -364,11 +713,13 @@
         const otherUserId = "@Model.UserId";
         const isChatClosed = @(isClosed ? "true" : "false");
         let connection = null;
+        let typingTimeout = null;
         let isTyping = false;
-        let sentMessageIds = new Set(); // لتخزين معرفات الرسائل المرسلة
-        let tempMessages = new Map(); // لتخزين الرسائل المؤقتة
+        let sentMessageIds = new Set();
+        let tempMessages = new Map();
+        let currentTypingUsers = new Set();
 
-        // جمع معرفات الرسائل الموجودة بالفعل
+        // جمع معرفات الرسائل الموجودة
         document.addEventListener('DOMContentLoaded', function() {
             const existingMessages = document.querySelectorAll('[data-message-id]');
             existingMessages.forEach(msg => {
@@ -379,17 +730,11 @@
             });
         });
 
-        // التحقق من أن المحادثة ليست مغلقة
-        if (isChatClosed) {
-            document.getElementById('connectionStatus').textContent = 'المحادثة مغلقة';
-            document.getElementById('connectionStatus').className = 'text-danger';
-        }
-
-        // تهيئة الاتصال للإدمن
+        // تهيئة اتصال الإدمن
         function initializeAdminConnection() {
-            // إذا كانت المحادثة مغلقة، لا نقوم بالاتصال
             if (isChatClosed) {
                 addSystemMessage('هذه المحادثة مغلقة ولا يمكن إرسال رسائل جديدة');
+                updateConnectionStatus('disconnected', 'المحادثة مغلقة');
                 return;
             }
 
@@ -397,44 +742,59 @@
                 .withUrl("/chatHub")
                 .withAutomaticReconnect({
                     nextRetryDelayInMilliseconds: retryContext => {
-                        if (retryContext.elapsedMilliseconds < 60000) {
-                            return 2000;
-                        }
-                        return 5000;
+                        if (retryContext.elapsedMilliseconds < 10000) return 2000;
+                        if (retryContext.elapsedMilliseconds < 30000) return 5000;
+                        return 10000;
                     }
                 })
                 .configureLogging(signalR.LogLevel.Warning)
                 .build();
 
-            // استقبال الرسائل الجديدة - مع 4 معاملات (messageId هو الرابع)
-            connection.on("ReceiveMessage", function (senderId, message, time, messageId = null) {
+            // إعداد أحداث SignalR
+            setupSignalREvents();
+
+            // بدء الاتصال
+            connection.start()
+                .then(() => {
+                    console.log("✅ الإدمن متصل بـ SignalR");
+                    updateConnectionStatus('connected', 'متصل بالمستخدم');
+                    joinChat();
+                })
+                .catch(err => {
+                    console.error("❌ فشل اتصال الإدمن:", err);
+                    updateConnectionStatus('disconnected', 'انقطع الاتصال');
+                    setTimeout(initializeAdminConnection, 5000);
+                });
+        }
+
+        // إعداد أحداث SignalR
+        function setupSignalREvents() {
+            // استقبال الرسائل الجديدة
+            connection.on("ReceiveMessage", (senderId, message, time, messageId = null) => {
                 const isAdmin = senderId === currentUserId;
 
-                // إزالة رسالة "لا توجد رسائل" إذا كانت موجودة
-                const noMessages = document.getElementById('chatBox').querySelector('.text-center.text-muted');
-                if (noMessages) noMessages.remove();
+                // إزالة حالة عدم وجود رسائل
+                removeEmptyState();
 
                 // إذا كانت الرسالة لها معرف وتوجد بالفعل، تجاهلها
                 if (messageId && sentMessageIds.has(messageId)) {
-                    console.log('تم تجاهل رسالة مكررة (معرف موجود):', messageId);
-                    hideTypingIndicator();
+                    console.log('تم تجاهل رسالة مكررة:', messageId);
+                    hideTypingIndicator(senderId);
                     return;
                 }
 
                 // إذا كانت الرسالة من الإدمن ولها معرف، فهي نسخة من الخادم
                 if (isAdmin && messageId) {
-                    // تحديث الرسالة المؤقتة إذا وجدت
                     updateTempMessage(messageId, message, time);
-                    hideTypingIndicator();
+                    hideTypingIndicator(senderId);
                     return;
                 }
 
                 // إذا كانت الرسالة من الإدمن ولا يوجد معرف، قد تكون تكراراً
                 if (isAdmin && !messageId) {
-                    // التحقق من وجود رسالة مشابهة حديثة
                     if (isDuplicateMessage(message, time, true)) {
                         console.log('تم تجاهل رسالة مكررة من الإدمن:', message);
-                        hideTypingIndicator();
+                        hideTypingIndicator(senderId);
                         return;
                     }
                 }
@@ -442,96 +802,103 @@
                 // إذا كانت الرسالة من المستخدم، إضافتها مباشرة
                 if (!isAdmin) {
                     addMessageToChat(message, false, time, senderId, messageId);
-                    hideTypingIndicator();
+                    hideTypingIndicator(senderId);
                     return;
                 }
 
-                // إضافة الرسالة الجديدة (إذا مرت جميع الشروط)
+                // إضافة الرسالة الجديدة
                 addMessageToChat(message, isAdmin, time, senderId, messageId);
-                hideTypingIndicator();
+                hideTypingIndicator(senderId);
             });
 
-            // مؤشر كتابة المستخدم
-            connection.on("UserTyping", function (chatId, userId) {
+            // مؤشر بدء الكتابة
+            connection.on("UserStartedTyping", (chatId, userId) => {
                 if (chatId === currentChatId && userId === otherUserId) {
-                    const typingIndicator = document.getElementById('typingIndicator');
-                    if (typingIndicator) {
-                        typingIndicator.style.display = 'block';
-
-                        // إخفاء المؤشر بعد 3 ثواني
-                        setTimeout(() => {
-                            if (typingIndicator) typingIndicator.style.display = 'none';
-                        }, 3000);
-                    }
+                    currentTypingUsers.add(userId);
+                    updateTypingIndicator();
                 }
             });
 
-            // أحداث الاتصال
-            connection.onreconnecting(error => {
-                console.log('إعادة الاتصال...', error);
-                updateConnectionStatus('reconnecting', 'إعادة الاتصال...');
+            // مؤشر إيقاف الكتابة
+            connection.on("UserStoppedTyping", (chatId, userId) => {
+                if (chatId === currentChatId) {
+                    currentTypingUsers.delete(userId);
+                    updateTypingIndicator();
+                }
             });
 
-            connection.onreconnected(connectionId => {
-                console.log('تم إعادة الاتصال');
+            // أحداث اتصال
+            connection.onreconnecting(() => {
+                updateConnectionStatus('connecting', 'إعادة الاتصال...');
+            });
+
+            connection.onreconnected(() => {
                 updateConnectionStatus('connected', 'متصل');
-
-                // الانضمام للمحادثة مرة أخرى
-                if (connection && connection.state === signalR.HubConnectionState.Connected) {
-                    connection.invoke("JoinChat", currentChatId)
-                        .catch(err => console.error('خطأ في الانضمام للمحادثة:', err));
-                }
+                joinChat();
             });
 
-            connection.onclose(error => {
-                console.log('تم إغلاق الاتصال', error);
+            connection.onclose(() => {
                 updateConnectionStatus('disconnected', 'انقطع الاتصال');
             });
-
-            // بدء الاتصال
-            connection.start()
-                .then(() => {
-                    console.log("✅ الإدمن متصل بـ SignalR");
-                    updateConnectionStatus('connected', 'متصل');
-
-                    // الانضمام للمحادثة - استخدام نفس الوظيفة مثل العميل
-                    return connection.invoke("JoinChat", currentChatId);
-                })
-                .then(() => {
-                    console.log("✅ الإدمن انضم للمحادثة: " + currentChatId);
-
-                    // إرسال رسالة ترحيب إذا لم تكن هناك رسائل
-                    const noMessages = document.getElementById('chatBox').querySelector('.text-center.text-muted');
-                    if (noMessages) {
-                        addSystemMessage('تم الاتصال بالمستخدم، يمكنك البدء في المحادثة');
-                    }
-                })
-                .catch(err => {
-                    console.error("❌ خطأ اتصال الإدمن: ", err);
-                    updateConnectionStatus('disconnected', 'انقطع الاتصال');
-                    addSystemMessage('تعذر الاتصال بالخادم، يرجى تحديث الصفحة');
-                });
         }
 
-        // التحقق مما إذا كانت الرسالة مكررة
-        function isDuplicateMessage(message, time, isAdmin = false) {
-            // تحديد فئة الرسائل للبحث فيها
-            const messageClass = isAdmin ? 'sent' : 'received';
-            const recentMessages = document.querySelectorAll(`.message-bubble.${messageClass}`);
+        // الانضمام للدردشة
+        function joinChat() {
+            if (connection && connection.state === 'Connected') {
+                connection.invoke("JoinChat", currentChatId)
+                    .then(() => console.log("✅ الإدمن انضم للدردشة"))
+                    .catch(err => console.error("❌ فشل الانضمام:", err));
+            }
+        }
 
+        // تحديث حالة الاتصال
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            const statusDot = document.getElementById('statusDot');
+
+            if (statusElement) {
+                statusElement.textContent = text;
+                statusElement.className = status;
+            }
+
+            if (statusDot) {
+                statusDot.className = 'status-dot ' + status;
+            }
+        }
+
+        // تحديث مؤشر الكتابة
+        function updateTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            const typingText = indicator?.querySelector('.typing-text');
+
+            if (currentTypingUsers.size > 0 && indicator && typingText) {
+                typingText.textContent = 'المستخدم يكتب...';
+                indicator.style.display = 'flex';
+            } else if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // إخفاء مؤشر الكتابة
+        function hideTypingIndicator(userId) {
+            currentTypingUsers.delete(userId);
+            updateTypingIndicator();
+        }
+
+        // التحقق من الرسالة المكررة
+        function isDuplicateMessage(message, time, isAdmin = false) {
+            const messageClass = isAdmin ? 'message-sent' : 'message-received';
+            const recentMessages = document.querySelectorAll(`.${messageClass}`);
             const now = new Date();
             const currentTime = now.getTime();
 
             for (let msg of recentMessages) {
-                const content = msg.querySelector('.message-content').textContent;
-                const msgTimeText = msg.querySelector('.message-time').textContent;
+                const content = msg.querySelector('.message-text')?.textContent;
+                const msgTimeText = msg.querySelector('.message-time')?.textContent;
 
-                // إذا كانت الرسالة مطابقة في المحتوى وكانت حديثة
-                if (content === message) {
+                if (content === message && msgTimeText) {
                     const msgTime = parseMessageTime(msgTimeText);
                     const newTime = parseMessageTime(time);
-
-                    // إذا كان الفرق أقل من 5 ثواني، تعتبر مكررة
                     if (Math.abs(msgTime - newTime) < 5000) {
                         return true;
                     }
@@ -540,14 +907,13 @@
             return false;
         }
 
-        // تحويل وقت الرسالة إلى timestamp
+        // تحويل وقت الرسالة
         function parseMessageTime(timeStr) {
             const now = new Date();
             const [hours, minutes] = timeStr.split(':').map(Number);
             const messageTime = new Date(now);
             messageTime.setHours(hours, minutes, 0, 0);
 
-            // إذا كان الوقت بعد منتصف الليل ولكن الآن قبل الظهر، فهو من اليوم السابق
             if (messageTime > now && messageTime - now > 12 * 60 * 60 * 1000) {
                 messageTime.setDate(messageTime.getDate() - 1);
             }
@@ -555,34 +921,27 @@
             return messageTime.getTime();
         }
 
-        // تحديث الرسالة المؤقتة بعد استلامها من الخادم
+        // تحديث الرسالة المؤقتة
         function updateTempMessage(messageId, message, time) {
-            // البحث في جميع الرسائل المؤقتة
             for (let [tempId, tempData] of tempMessages) {
                 if (tempData.message === message) {
                     const tempElement = document.querySelector(`[data-temp-id="${tempId}"]`);
                     if (tempElement) {
-                        // تحديث المعرف
                         tempElement.setAttribute('data-message-id', messageId);
                         tempElement.removeAttribute('data-temp-id');
 
-                        // تحديث الوقت
                         const timeSpan = tempElement.querySelector('.message-time');
                         if (timeSpan && time) {
                             timeSpan.textContent = time;
                         }
 
-                        // تغيير الحالة من قيد الإرسال إلى تم الإرسال
-                        const bubble = tempElement.querySelector('.message-bubble');
-                        if (bubble) {
-                            bubble.classList.remove('sending');
-                            bubble.classList.add('sent-confirmed');
+                        const contentDiv = tempElement.querySelector('.message-content');
+                        if (contentDiv) {
+                            contentDiv.classList.remove('sending');
+                            contentDiv.classList.add('sent-confirmed');
                         }
 
-                        // تخزين معرف الرسالة لمنع التكرار
                         sentMessageIds.add(parseInt(messageId));
-
-                        // إزالة من القائمة المؤقتة
                         tempMessages.delete(tempId);
                         break;
                     }
@@ -590,15 +949,21 @@
             }
         }
 
+        // إزالة حالة عدم وجود رسائل
+        function removeEmptyState() {
+            const emptyState = document.querySelector('.empty-chat');
+            if (emptyState) emptyState.remove();
+        }
+
         // إضافة رسالة للدردشة
         function addMessageToChat(message, isAdmin, time = null, senderId = null, messageId = null) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `message-wrapper ${isAdmin ? 'admin-message' : 'user-message'} new-message`;
+            removeEmptyState();
 
-            const messageDiv = document.createElement('div');
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `message-wrapper ${isAdmin ? 'message-sent' : 'message-received'} new-message`;
 
             const now = new Date();
             const displayTime = time || now.toLocaleTimeString('ar-EG', {
@@ -607,15 +972,11 @@
             });
 
             if (isAdmin) {
-                messageDiv.className = 'message-bubble sent';
+                messageWrapper.className = 'message-wrapper message-sent new-message';
 
-                // إذا كانت رسالة جديدة بدون معرف، فهي مؤقتة
                 if (!messageId) {
                     const tempId = 'temp_' + Date.now();
                     messageWrapper.setAttribute('data-temp-id', tempId);
-                    messageDiv.classList.add('sending');
-
-                    // تخزين الرسالة المؤقتة
                     tempMessages.set(tempId, {
                         message: message,
                         time: displayTime
@@ -625,7 +986,7 @@
                     sentMessageIds.add(parseInt(messageId));
                 }
             } else {
-                messageDiv.className = 'message-bubble received';
+                messageWrapper.className = 'message-wrapper message-received new-message';
                 if (messageId) {
                     messageWrapper.setAttribute('data-message-id', messageId);
                     sentMessageIds.add(parseInt(messageId));
@@ -633,17 +994,18 @@
             }
 
             const statusIcon = isAdmin ?
-                '<small class="message-status ms-2"><i class="fas fa-check-circle text-success"></i></small>' : '';
+                '<span class="message-status"><i class="fas fa-check-circle"></i></span>' : '';
 
-            messageDiv.innerHTML = `
-                <div class="message-content">${escapeHtml(message)}</div>
-                <div class="message-footer">
-                    <small class="message-time">${displayTime}</small>
-                    ${statusIcon}
+            messageWrapper.innerHTML = `
+                <div class="message-content ${isAdmin && !messageId ? 'sending' : ''}">
+                    <div class="message-text">${escapeHtml(message)}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${displayTime}</span>
+                        ${statusIcon}
+                    </div>
                 </div>
             `;
 
-            messageWrapper.appendChild(messageDiv);
             chatBox.appendChild(messageWrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -653,22 +1015,44 @@
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
-            const noMessages = chatBox.querySelector('.text-center.text-muted');
-            if (noMessages) noMessages.remove();
+            removeEmptyState();
 
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-system';
-            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${text}`;
+            messageDiv.className = 'message-wrapper message-received';
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-text" style="font-style: italic; opacity: 0.7;">${escapeHtml(text)}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${new Date().toLocaleTimeString('ar-EG', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</span>
+                    </div>
+                </div>
+            `;
+
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // تحديث حالة الاتصال
-        function updateConnectionStatus(status, text) {
-            const statusElement = document.getElementById('connectionStatus');
-            if (statusElement) {
-                statusElement.textContent = text;
-                statusElement.className = status;
+        // بدء الكتابة
+        function startTyping() {
+            if (!isTyping && connection && connection.state === 'Connected' && !isChatClosed) {
+                isTyping = true;
+                connection.invoke("StartTyping", currentChatId)
+                    .catch(err => console.error("❌ فشل إرسال مؤشر الكتابة:", err));
+            }
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 2000);
+        }
+
+        // إيقاف الكتابة
+        function stopTyping() {
+            if (isTyping && connection && connection.state === 'Connected' && !isChatClosed) {
+                isTyping = false;
+                connection.invoke("StopTyping", currentChatId)
+                    .catch(err => console.error("❌ فشل إيقاف مؤشر الكتابة:", err));
             }
         }
 
@@ -683,68 +1067,50 @@
             const message = input.value.trim();
 
             if (!message) return;
-            if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+            if (!connection || connection.state !== 'Connected') {
                 alert('الاتصال غير نشط. يرجى الانتظار...');
                 return;
             }
 
-            // مسح حقل الإدخال أولاً
             input.value = '';
-
-            // إضافة الرسالة المحلية فوراً (بعلامة قيد الإرسال)
             addMessageToChat(message, true, null, currentUserId);
+            stopTyping();
 
-            // إرسال الرسالة للخادم - استخدام نفس الوظيفة مثل العميل
             connection.invoke("SendMessage", currentChatId, message)
                 .then(() => {
-                    // النجاح معالج في حدث ReceiveMessage
                     console.log('تم إرسال الرسالة للخادم');
                 })
                 .catch(err => {
                     console.error("❌ فشل إرسال الرسالة: ", err);
+                    addSystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
 
-                    // البحث عن الرسالة المؤقتة الأخيرة وتحديث حالتها إلى فاشلة
+                    // تحديث حالة الرسالة إلى فاشلة
                     const tempMessagesArray = Array.from(tempMessages.entries());
                     if (tempMessagesArray.length > 0) {
                         const [lastTempId, lastTempData] = tempMessagesArray[tempMessagesArray.length - 1];
-
                         if (lastTempData.message === message) {
                             const tempMsg = document.querySelector(`[data-temp-id="${lastTempId}"]`);
                             if (tempMsg) {
-                                const bubble = tempMsg.querySelector('.message-bubble');
-                                if (bubble) {
-                                    bubble.classList.remove('sending');
-                                    bubble.classList.add('send-failed');
-
-                                    const timeSpan = bubble.querySelector('.message-time');
-                                    if (timeSpan) {
-                                        const warningIcon = document.createElement('i');
-                                        warningIcon.className = 'fas fa-exclamation-triangle';
-                                        warningIcon.title = 'فشل الإرسال';
-                                        timeSpan.appendChild(warningIcon);
-                                    }
-
-                                    // إزالة من القائمة المؤقتة
-                                    tempMessages.delete(lastTempId);
+                                const contentDiv = tempMsg.querySelector('.message-content');
+                                if (contentDiv) {
+                                    contentDiv.classList.remove('sending');
+                                    contentDiv.classList.add('send-failed');
                                 }
+                                tempMessages.delete(lastTempId);
                             }
                         }
                     }
 
-                    addSystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
-
-                    // محاولة إعادة الإرسال بعد 3 ثواني
                     setTimeout(() => {
-                        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+                        if (connection && connection.state === 'Connected') {
                             retrySendMessage(message);
                         }
                     }, 3000);
                 });
         }
 
-        // إعادة محاولة إرسال الرسالة
+        // إعادة إرسال الرسالة
         function retrySendMessage(message) {
-            // إرسال الرسالة مرة أخرى
             connection.invoke("SendMessage", currentChatId, message)
                 .then(() => {
                     console.log('تمت إعادة إرسال الرسالة بنجاح');
@@ -783,19 +1149,6 @@
             }
         }
 
-        // إشعار الكتابة
-        function notifyTyping() {
-            if (!isTyping && connection && connection.state === signalR.HubConnectionState.Connected && !isChatClosed) {
-                isTyping = true;
-                connection.invoke("NotifyTyping", currentChatId, currentUserId)
-                    .catch(err => console.error('خطأ في إرسال إشعار الكتابة:', err));
-
-                setTimeout(() => {
-                    isTyping = false;
-                }, 1000);
-            }
-        }
-
         // التهريب من HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -805,7 +1158,6 @@
 
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // التحقق من صحة البيانات
             if (!currentUserId || currentUserId === '') {
                 alert('خطأ: لم يتم التعرف على المستخدم');
                 window.location.href = '/Account/Login';
@@ -818,7 +1170,6 @@
                 return;
             }
 
-            // إذا كانت المحادثة غير مغلقة، نقوم بالاتصال
             if (!isChatClosed) {
                 initializeAdminConnection();
             }
@@ -832,18 +1183,22 @@
             if (btnCloseChat) btnCloseChat.addEventListener('click', closeChat);
 
             if (msgInput && !isChatClosed) {
-                msgInput.addEventListener('keypress', function(e) {
+                msgInput.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        startTyping();
+                    }
+                });
+
+                msgInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         sendAdminMessage();
                     }
                 });
 
-                // الكشف عن الكتابة عند الكتابة
-                msgInput.addEventListener('input', notifyTyping);
+                msgInput.addEventListener('blur', stopTyping);
             }
 
-            // التركيز على حقل الإدخال إذا لم تكن المحادثة مغلقة
             setTimeout(() => {
                 if (msgInput && !isChatClosed) msgInput.focus();
             }, 500);

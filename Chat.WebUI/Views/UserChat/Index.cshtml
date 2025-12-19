@@ -4,265 +4,466 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "الدعم المباشر";
-
-    // استخدام الطريقة الصحيحة للحصول على userId
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var userName = User.Identity?.Name ?? "مستخدم";
-
-    // التحقق من القيم
     bool isClosed = ViewBag.IsClosed != null && (bool)ViewBag.IsClosed;
 }
 
-
 <div class="chat-container">
-    <!-- شريط معلومات الدردشة -->
-    <div class="chat-header bg-primary text-white p-3 rounded-top">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-headset fa-lg me-3"></i>
-                <div>
-                    <h4 class="mb-0">الدعم المباشر</h4>
-                    <small id="connectionStatus" class="d-block">جاري الاتصال...</small>
+    <!-- شريط الرأس -->
+    <div class="chat-header">
+        <div class="header-content">
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div class="info">
+                    <h4 class="mb-0">الدعم الفني</h4>
+                    <div class="status">
+                        <span class="status-dot" id="statusDot"></span>
+                        <small id="connectionStatus">جاري الاتصال...</small>
+                    </div>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-dark">
-                    <i class="fas fa-hashtag"></i> @Model.Id
-                </span>
-                <button id="btnEndChat" class="btn btn-sm btn-outline-light" title="إنهاء المحادثة">
-                    <i class="fas fa-times me-1"></i> إنهاء
+            <div class="chat-meta">
+                <span class="chat-id">#@Model.Id</span>
+                <button id="btnEndChat" class="btn-end-chat" title="إنهاء المحادثة">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
+        </div>
+
+        <!-- مؤشر الكتابة -->
+        <div id="typingIndicator" class="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span class="typing-text"></span>
         </div>
     </div>
 
     <!-- نافذة المحادثة -->
-    <div id="chatBox" class="chat-messages p-3">
-        <!-- الرسائل ستظهر هنا ديناميكيًا -->
-        <div class="text-center text-muted">
-            <i class="fas fa-spinner fa-spin me-2"></i> جاري الاتصال بالدعم...
+    <div id="chatBox" class="chat-messages">
+        <!-- الرسائل ستظهر هنا -->
+        <div class="welcome-message">
+            <div class="welcome-icon">
+                <i class="fas fa-comments"></i>
+            </div>
+            <h5>مرحباً بك في الدعم الفني</h5>
+            <p>سنقوم بالرد عليك في أقرب وقت ممكن</p>
         </div>
     </div>
 
     <!-- منطقة الكتابة -->
-    <div class="chat-input p-3 border-top">
-        <div class="input-group">
-            <input type="text" id="msgInput" class="form-control"
-                   placeholder="اكتب رسالتك هنا (حد أقصى 500 حرف)..."
-                   autocomplete="off"
-                   maxlength="500"
-                   @(isClosed ? "disabled" : "")>
-            <button id="btnSend" class="btn btn-primary" @(isClosed ? "disabled" : "")>
-                <i class="fas fa-paper-plane"></i> إرسال
-            </button>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-2">
-            <small class="text-muted">
-                <i class="fas fa-user me-1"></i> أنت: @userName
-            </small>
-            <div>
-                <small id="charCount" class="text-muted">0/500</small>
-                <small id="typingIndicator" class="text-muted ms-2" style="display:none;">
-                    <i class="fas fa-pencil-alt me-1"></i> الدعم يكتب...
-                </small>
+    <div class="chat-input-area">
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea id="msgInput"
+                          class="message-input"
+                          placeholder="اكتب رسالتك هنا..."
+                          rows="1"
+                          maxlength="500"
+                          @(isClosed ? "disabled" : "")></textarea>
+                <div class="input-actions">
+                    <button id="btnSend" class="btn-send" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="alert alert-warning alert-dismissible fade show mt-2" id="charLimitAlert" style="display: none;">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <span id="alertMessage"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="input-footer">
+                <small id="charCount" class="char-count">0/500</small>
+                <small class="hint">اضغط Enter للإرسال، Shift+Enter للسطر الجديد</small>
+            </div>
         </div>
     </div>
 </div>
 
-
-
 <style>
+    /* متغيرات الألوان */
+    :root {
+        --primary-color: #0084ff;
+        --primary-dark: #0073e6;
+        --success-color: #00b894;
+        --warning-color: #fdcb6e;
+        --danger-color: #d63031;
+        --gray-light: #f5f6fa;
+        --gray-medium: #dfe6e9;
+        --gray-dark: #636e72;
+        --white: #ffffff;
+        --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+    }
+
+    /* التصميم الرئيسي */
     .chat-container {
-        max-width: 500px; /* أصغر عرض */
-        margin: 1rem auto;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        overflow: hidden;
-        background: white;
-        height: 85vh; /* ارتفاع مناسب */
+        width: 100%;
+        max-width: 500px;
+        height: 85vh;
         max-height: 700px;
+        margin: 2rem auto;
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
         display: flex;
         flex-direction: column;
+        overflow: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    /* الرأس */
     .chat-header {
-        flex-shrink: 0;
-        padding: 12px 15px !important;
-        background: linear-gradient(135deg, #0069d9, #0056b3) !important;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: var(--white);
+        padding: 1rem 1.5rem;
+        position: relative;
     }
 
-    .chat-messages {
-        flex: 1;
-        height: auto;
-        min-height: 0;
-        overflow-y: auto;
-        background: #f0f2f5;
-        padding: 10px 15px !important;
+    .header-content {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    /* رسائل المرسل */
-    .message-sent {
-        align-self: flex-end;
-        background: linear-gradient(135deg, #0084ff, #0073e6);
-        color: white;
-        border-radius: 18px 18px 4px 18px;
-        padding: 8px 12px;
-        max-width: 80%;
-        min-width: 50px;
-        margin: 2px 0;
-        animation: slideInRight 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        font-size: 0.9rem;
-        line-height: 1.4;
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
-    /* رسائل المستقبل */
-    .message-received {
-        align-self: flex-start;
-        background: white;
-        color: #333;
-        border-radius: 18px 18px 18px 4px;
-        padding: 8px 12px;
-        max-width: 80%;
-        min-width: 50px;
-        margin: 2px 0;
-        animation: slideInLeft 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        border: 1px solid #e6e6e6;
-        font-size: 0.9rem;
-        line-height: 1.4;
+    .avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
     }
 
-        .message-received .message-sender {
-            font-weight: 600;
-            color: #385898;
-            font-size: 0.75rem;
-            margin-bottom: 3px;
+    .info h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4cd964;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
         }
 
-    /* وقت الرسالة */
-    .message-time {
-        font-size: 0.65rem;
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .chat-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chat-id {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+
+    .btn-end-chat {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: var(--white);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-end-chat:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+
+    /* مؤشر الكتابة */
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--white);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+            .typing-dots span:nth-child(1) {
+                animation-delay: -0.32s;
+            }
+
+            .typing-dots span:nth-child(2) {
+                animation-delay: -0.16s;
+            }
+
+    @@keyframes bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
+
+    /* نافذة المحادثة */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: var(--gray-light);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* رسالة الترحيب */
+    .welcome-message {
+        text-align: center;
+        padding: 30px 20px;
+        color: var(--gray-dark);
+    }
+
+    .welcome-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+    }
+
+    .welcome-message h5 {
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+    }
+
+    .welcome-message p {
+        font-size: 0.9rem;
         opacity: 0.8;
+    }
+
+    /* رسائل المستخدم */
+    .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        animation: slideIn 0.3s ease;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message-sent {
+        align-self: flex-end;
+        background: var(--primary-color);
+        color: var(--white);
+        border-bottom-right-radius: 4px;
+        margin-left: auto;
+    }
+
+    .message-received {
+        align-self: flex-start;
+        background: var(--white);
+        color: #333;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-sender {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--primary-dark);
+    }
+
+    .message-content {
+        font-size: 0.95rem;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+        opacity: 0.7;
         margin-top: 4px;
         display: block;
+        text-align: left;
     }
 
     .message-sent .message-time {
-        color: rgba(255,255,255,0.85);
+        color: rgba(255, 255, 255, 0.8);
+        text-align: right;
     }
 
-    .message-received .message-time {
-        color: #65676b;
-    }
-
-    /* الرسائل النظامية */
+    /* رسالة نظامية */
     .message-system {
         align-self: center;
-        background: rgba(0,0,0,0.04);
-        color: #65676b;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.5);
+        color: var(--gray-dark);
+        font-size: 0.8rem;
         padding: 6px 12px;
-        font-size: 0.75rem;
+        border-radius: 12px;
         margin: 5px 0;
-        text-align: center;
     }
 
     /* منطقة الكتابة */
-    .chat-input {
-        flex-shrink: 0;
-        padding: 10px 12px !important;
-        background: white;
-        border-top: 1px solid #e4e6eb;
+    .chat-input-area {
+        border-top: 1px solid var(--gray-medium);
+        background: var(--white);
+        padding: 15px;
     }
 
-    #msgInput {
-        border-radius: 20px;
-        border: 1px solid #dddfe2;
+    .input-container {
+        position: relative;
+    }
+
+    .input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        background: var(--gray-light);
+        border-radius: 24px;
         padding: 8px 15px;
-        font-size: 0.9rem;
-        background: #f0f2f5;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
     }
 
-        #msgInput:focus {
-            border-color: #0084ff;
-            box-shadow: 0 0 0 2px rgba(0,132,255,0.2);
-            background: white;
+        .input-wrapper:focus-within {
+            border-color: var(--primary-color);
+            background: var(--white);
         }
 
-    #btnSend {
-        border-radius: 20px;
-        margin-left: 8px;
-        padding: 8px 20px;
-        background: linear-gradient(135deg, #0084ff, #0073e6);
+    .message-input {
+        flex: 1;
         border: none;
+        background: transparent;
+        resize: none;
+        font-size: 0.95rem;
+        color: #333;
+        max-height: 120px;
+        min-height: 24px;
+        padding: 5px 0;
+        direction: rtl;
+        text-align: right;
     }
 
-        #btnSend:hover {
-            background: linear-gradient(135deg, #0073e6, #0062cc);
+        .message-input:focus {
+            outline: none;
         }
 
-    /* عداد الأحرف */
-    #charCount {
+        .message-input::placeholder {
+            color: var(--gray-dark);
+            opacity: 0.6;
+        }
+
+    .btn-send {
+        background: var(--primary-color);
+        color: var(--white);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+        .btn-send:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .btn-send:disabled {
+            background: var(--gray-medium);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+    .input-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        padding: 0 5px;
+    }
+
+    .char-count {
         font-size: 0.75rem;
-        font-weight: 500;
+        color: var(--gray-dark);
+        transition: color 0.3s ease;
     }
 
-    /* مؤشر الكتابة */
-    #typingIndicator {
-        font-size: 0.75rem;
-        background: #f0f2f5;
-        padding: 5px 10px;
-        border-radius: 15px;
-        margin: 5px 0;
-        align-self: flex-start;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        .char-count.warning {
+            color: var(--warning-color);
+        }
+
+        .char-count.danger {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+    .hint {
+        font-size: 0.7rem;
+        color: var(--gray-dark);
+        opacity: 0.6;
     }
-
-    /* الأنيميشن */
-    @@keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(20px) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
-    }
-
-    @@keyframes slideInLeft {
-        from {
-            opacity: 0;
-            transform: translateX(-20px) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
-    }
-
-    /* زر إنهاء المحادثة */
-    #btnEndChat {
-        font-size: 0.85rem;
-        padding: 4px 10px;
-        border: 1px solid rgba(255,255,255,0.3);
-    }
-
-        #btnEndChat:hover {
-            background-color: rgba(255,255,255,0.15);
-        }
 
     /* التمرير */
     .chat-messages::-webkit-scrollbar {
@@ -274,88 +475,87 @@
     }
 
     .chat-messages::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.2);
-        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
     }
 
         .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.2);
         }
 
-    /* تصميم للرسائل الطويلة */
-    .long-message {
-        max-height: 200px;
-        overflow-y: auto;
-        padding-right: 5px;
+    /* حالات الاتصال */
+    .status.connected .status-dot {
+        background: #4cd964;
     }
 
-    /* رسالة قيد الإرسال */
-    .sending {
-        opacity: 0.7;
-        position: relative;
+    .status.connecting .status-dot {
+        background: #fdcb6e;
+        animation: blink 1s infinite;
     }
 
-        .sending::after {
-            content: '';
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            width: 4px;
-            height: 4px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 50%;
-            animation: sendingDots 1.4s infinite;
-        }
+    .status.disconnected .status-dot {
+        background: var(--danger-color);
+    }
 
-    @@keyframes sendingDots {
+    @@keyframes blink {
         0%, 100% {
-            opacity: 0.3;
+            opacity: 1;
         }
 
         50% {
-            opacity: 1;
+            opacity: 0.3;
         }
+    }
+
+    /* رسالة الإرسال */
+    .message.sending {
+        opacity: 0.7;
+    }
+
+        .message.sending::after {
+            content: '';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 132, 255, 0.3);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        to {
+            transform: translateY(-50%) rotate(360deg);
+        }
+    }
+
+    /* رد الفعل */
+    .message.sent-confirmed .message-time::after {
+        content: ' ✓✓';
+        color: #4cd964;
+        font-weight: bold;
     }
 
     /* تصميم للجوال */
     @@media (max-width: 768px) {
         .chat-container {
             margin: 0;
-            border-radius: 0;
             height: 100vh;
             max-height: none;
+            border-radius: 0;
             max-width: none;
         }
 
-        .message-sent,
-        .message-received {
+        .message {
             max-width: 85%;
         }
-    }
 
-    /* تحسين عرض النصوص العربية */
-    .message-content {
-        text-align: right;
-        direction: rtl;
-        word-break: break-word;
-        white-space: pre-wrap;
-    }
-
-    /* أيقونة التأكيد */
-    .fa-check-circle {
-        margin-left: 5px;
-        font-size: 0.6rem;
-    }
-
-    /* إخفاء تحذير الأحرف */
-    #charLimitAlert {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        width: 90%;
-        max-width: 400px;
+        .chat-input-area {
+            padding: 10px;
+        }
     }
 </style>
 
@@ -365,256 +565,189 @@
         // المتغيرات العامة
         const currentChatId = "@Model.Id";
         const currentUserId = "@userId";
-        const currentUserName = "@userName";
         const MAX_CHARS = 500;
         let connection = null;
+        let typingTimeout = null;
         let isTyping = false;
-        let sentMessageIds = new Set(); // لتخزين معرفات الرسائل المرسلة
-        let tempMessages = new Map(); // لتخزين الرسائل المؤقتة
+        let currentTypingUsers = new Set();
 
-        // التحقق من وجود userId
-        if (!currentUserId) {
-            alert('خطأ: لم يتم التعرف على المستخدم. يرجى تسجيل الدخول مرة أخرى.');
-            window.location.href = '/Account/Login';
-        }
-
-        // تحديث عداد الأحرف
-        function updateCharCount() {
-            const input = document.getElementById('msgInput');
-            const charCount = document.getElementById('charCount');
-            if (!input || !charCount) return;
-
-            const length = input.value.length;
-            const remaining = MAX_CHARS - length;
-            charCount.textContent = `${length}/${MAX_CHARS}`;
-
-            // تغيير اللون بناءً على عدد الأحرف المتبقية
-            charCount.classList.remove('warning', 'danger');
-            input.classList.remove('warning', 'danger');
-
-            if (remaining <= 100 && remaining > 50) {
-                charCount.classList.add('warning');
-                input.classList.add('warning');
-            } else if (remaining <= 50 && remaining > 0) {
-                charCount.classList.add('danger');
-                input.classList.add('danger');
-            } else if (remaining <= 0) {
-                charCount.classList.add('danger');
-                input.classList.add('danger');
-            }
-        }
-
-        // عرض تحذير عند تجاوز الحد
-        function showCharLimitWarning(message) {
-            const alertDiv = document.getElementById('charLimitAlert');
-            const alertMessage = document.getElementById('alertMessage');
-            if (alertDiv && alertMessage) {
-                alertMessage.textContent = message;
-                alertDiv.style.display = 'block';
-
-                // إخفاء التحذير بعد 5 ثواني
-                setTimeout(() => {
-                    alertDiv.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        // التحقق من طول الرسالة
-        function validateMessage(message) {
-            if (message.length > MAX_CHARS) {
-                showCharLimitWarning(`تجاوزت الحد المسموح (${MAX_CHARS} حرف). الرجاء تقصير الرسالة.`);
-                return false;
-            }
-            return true;
-        }
-
-        // تهيئة الاتصال بـ SignalR
+        // تهيئة الاتصال
         function initializeConnection() {
             connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chatHub")
                 .withAutomaticReconnect({
                     nextRetryDelayInMilliseconds: retryContext => {
-                        if (retryContext.elapsedMilliseconds < 60000) {
-                            return 2000;
-                        }
-                        return 5000;
+                        if (retryContext.elapsedMilliseconds < 10000) return 2000;
+                        if (retryContext.elapsedMilliseconds < 30000) return 5000;
+                        return 10000;
                     }
                 })
                 .configureLogging(signalR.LogLevel.Warning)
                 .build();
 
-            // استقبال الرسائل الجديدة - مع 4 معاملات (messageId هو الرابع)
-            connection.on("ReceiveMessage", function (senderId, message, time, messageId = null) {
-                const isMe = senderId === currentUserId;
-
-                // إزالة رسالة "جاري الاتصال"
-                const loadingDiv = document.querySelector('.text-center.text-muted');
-                if (loadingDiv) loadingDiv.remove();
-
-                // إذا كانت الرسالة مني ولها معرف، فهي نسخة من الخادم
-                if (isMe && messageId) {
-                    // تحديث الرسالة المؤقتة إذا وجدت
-                    updateTempMessage(messageId, message, time);
-                    hideTypingIndicator();
-                    return;
-                }
-
-                // إذا كانت الرسالة مني ولا يوجد معرف، قد تكون تكراراً
-                if (isMe && !messageId) {
-                    // التحقق من وجود رسالة مشابهة حديثة
-                    if (isDuplicateMessage(message, time)) {
-                        console.log('تم تجاهل رسالة مكررة:', message);
-                        hideTypingIndicator();
-                        return;
-                    }
-                }
-
-                // إذا كانت الرسالة من شخص آخر، إضافتها مباشرة
-                if (!isMe) {
-                    addMessageToChat(message, false, time, senderId, messageId);
-                    hideTypingIndicator();
-                    return;
-                }
-
-                // إضافة الرسالة الجديدة (إذا مرت جميع الشروط)
-                addMessageToChat(message, isMe, time, senderId, messageId);
-                hideTypingIndicator();
-            });
-
-            // مؤشر كتابة المستخدم الآخر
-            connection.on("UserTyping", function (chatId, userId) {
-                if (chatId === currentChatId && userId !== currentUserId) {
-                    showTypingIndicator();
-                }
-            });
-
-            // أحداث الاتصال
-            connection.onreconnecting(error => {
-                console.log('إعادة الاتصال...', error);
-                updateConnectionStatus('disconnected', 'إعادة الاتصال...');
-            });
-
-            connection.onreconnected(connectionId => {
-                console.log('تم إعادة الاتصال');
-                updateConnectionStatus('connected', 'متصل');
-
-                // الانضمام للمحادثة مرة أخرى
-                if (connection && connection.state === signalR.HubConnectionState.Connected) {
-                    connection.invoke("JoinChat", currentChatId)
-                        .catch(err => console.error('خطأ في الانضمام للمحادثة:', err));
-                }
-            });
-
-            connection.onclose(error => {
-                console.log('تم إغلاق الاتصال', error);
-                updateConnectionStatus('disconnected', 'انقطع الاتصال');
-            });
+            // أحداث SignalR
+            setupSignalREvents();
 
             // بدء الاتصال
             connection.start()
                 .then(() => {
                     console.log("✅ متصل بـ SignalR");
-                    updateConnectionStatus('connected', 'متصل');
-
-                    // الانضمام للمحادثة
-                    return connection.invoke("JoinChat", currentChatId);
-                })
-                .then(() => {
-                    console.log("✅ انضم للمحادثة: " + currentChatId);
-
-                    // إرسال رسالة دخول
-                    addSystemMessage('تم الاتصال بالدعم، يمكنك البدء في المحادثة');
+                    updateConnectionStatus('connected', 'متصل بالدعم');
+                    joinChat();
                 })
                 .catch(err => {
-                    console.error("❌ خطأ في الاتصال: ", err);
+                    console.error("❌ فشل الاتصال:", err);
                     updateConnectionStatus('disconnected', 'انقطع الاتصال');
-                    addSystemMessage('تعذر الاتصال بالخادم، يرجى تحديث الصفحة');
+                    setTimeout(initializeConnection, 5000);
                 });
         }
 
-        // التحقق مما إذا كانت الرسالة مكررة
-        function isDuplicateMessage(message, time) {
-            // البحث عن رسائل حديثة (في آخر 5 ثواني) لها نفس المحتوى
-            const sentMessages = document.querySelectorAll('.message-sent:not(.sending)');
-            const now = new Date();
-            const currentTime = now.getTime();
+        // إعداد الأحداث
+        function setupSignalREvents() {
+            // استقبال الرسائل
+            connection.on("ReceiveMessage", (senderId, message, time, messageId) => {
+                const isMe = senderId === currentUserId;
+                displayMessage(message, isMe, time, senderId, messageId);
+                hideTypingIndicator(senderId);
+            });
 
-            for (let msg of sentMessages) {
-                const content = msg.querySelector('.message-content').textContent;
-                const msgTimeText = msg.querySelector('.message-time').textContent;
-
-                // إذا كانت الرسالة مطابقة في المحتوى وكانت حديثة
-                if (content === message) {
-                    const msgTime = parseMessageTime(msgTimeText);
-                    const newTime = parseMessageTime(time);
-
-                    // إذا كان الفرق أقل من 5 ثواني، تعتبر مكررة
-                    if (Math.abs(msgTime - newTime) < 5000) {
-                        return true;
-                    }
+            // مؤشر بدء الكتابة
+            connection.on("UserStartedTyping", (chatId, userId) => {
+                if (chatId === currentChatId && userId !== currentUserId) {
+                    currentTypingUsers.add(userId);
+                    updateTypingIndicator();
                 }
-            }
-            return false;
+            });
+
+            // مؤشر إيقاف الكتابة
+            connection.on("UserStoppedTyping", (chatId, userId) => {
+                if (chatId === currentChatId) {
+                    currentTypingUsers.delete(userId);
+                    updateTypingIndicator();
+                }
+            });
+
+            // دخول المستخدم
+            connection.on("UserJoined", (userId) => {
+                if (userId !== currentUserId) {
+                    displaySystemMessage('انضم ممثل الدعم إلى المحادثة');
+                }
+            });
+
+            // خروج المستخدم
+            connection.on("UserLeft", (userId) => {
+                if (userId !== currentUserId) {
+                    displaySystemMessage('غادر ممثل الدعم المحادثة');
+                }
+            });
+
+            // أحداث الاتصال
+            connection.onreconnecting(() => {
+                updateConnectionStatus('connecting', 'إعادة الاتصال...');
+            });
+
+            connection.onreconnected(() => {
+                updateConnectionStatus('connected', 'متصل');
+                joinChat();
+            });
+
+            connection.onclose(() => {
+                updateConnectionStatus('disconnected', 'انقطع الاتصال');
+            });
         }
 
-        // تحويل وقت الرسالة إلى timestamp
-        function parseMessageTime(timeStr) {
-            const now = new Date();
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            const messageTime = new Date(now);
-            messageTime.setHours(hours, minutes, 0, 0);
-
-            // إذا كان الوقت بعد منتصف الليل ولكن الآن قبل الظهر، فهو من اليوم السابق
-            if (messageTime > now && messageTime - now > 12 * 60 * 60 * 1000) {
-                messageTime.setDate(messageTime.getDate() - 1);
+        // الانضمام للدردشة
+        function joinChat() {
+            if (connection && connection.state === 'Connected') {
+                connection.invoke("JoinChat", currentChatId)
+                    .then(() => console.log("✅ انضم للدردشة"))
+                    .catch(err => console.error("❌ فشل الانضمام:", err));
             }
-
-            return messageTime.getTime();
         }
 
-        // تحديث الرسالة المؤقتة بعد استلامها من الخادم
-        function updateTempMessage(messageId, message, time) {
-            // البحث في جميع الرسائل المؤقتة
-            for (let [tempId, tempData] of tempMessages.entries()) {
-                if (tempData.message === message) {
-                    const tempElement = document.querySelector(`[data-temp-id="${tempId}"]`);
-                    if (tempElement) {
-                        // تحديث المعرف
-                        tempElement.setAttribute('data-message-id', messageId);
-                        tempElement.removeAttribute('data-temp-id');
+        // تحديث حالة الاتصال
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            const statusDot = document.getElementById('statusDot');
 
-                        // تحديث الوقت
-                        const timeSpan = tempElement.querySelector('.message-time');
-                        if (timeSpan && time) {
-                            timeSpan.textContent = time;
-                        }
+            if (statusElement && statusDot) {
+                statusElement.textContent = text;
+                statusDot.className = 'status-dot';
 
-                        // تغيير الحالة من قيد الإرسال إلى تم الإرسال
-                        tempElement.classList.remove('sending');
-                        tempElement.classList.add('sent-confirmed');
-
-                        // إضافة أيقونة التأكيد
-                        const checkIcon = document.createElement('i');
-                        checkIcon.className = 'fas fa-check-circle';
-                        timeSpan.appendChild(checkIcon);
-
-                        // تخزين معرف الرسالة لمنع التكرار
-                        sentMessageIds.add(messageId);
-
-                        // إزالة من القائمة المؤقتة
-                        tempMessages.delete(tempId);
+                switch(status) {
+                    case 'connected':
+                        statusDot.style.background = '#4cd964';
                         break;
-                    }
+                    case 'connecting':
+                        statusDot.style.background = '#fdcb6e';
+                        statusDot.style.animation = 'blink 1s infinite';
+                        break;
+                    case 'disconnected':
+                        statusDot.style.background = '#d63031';
+                        break;
                 }
             }
         }
 
-        // إضافة رسالة للدردشة مع معالجة النصوص الطويلة
-        function addMessageToChat(message, isSent, time = null, senderId = null, messageId = null) {
+        // تحديث مؤشر الكتابة
+        function updateTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            const typingText = indicator?.querySelector('.typing-text');
+
+            if (currentTypingUsers.size > 0 && indicator && typingText) {
+                const users = Array.from(currentTypingUsers);
+                const text = users.length === 1 ? 'الدعم يكتب...' : 'الدعم يكتبون...';
+
+                typingText.textContent = text;
+                indicator.style.display = 'flex';
+            } else if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // إخفاء مؤشر الكتابة لمستخدم معين
+        function hideTypingIndicator(userId) {
+            currentTypingUsers.delete(userId);
+            updateTypingIndicator();
+        }
+
+        // بدء الكتابة
+        function startTyping() {
+            if (!isTyping && connection && connection.state === 'Connected') {
+                isTyping = true;
+                connection.invoke("StartTyping", currentChatId)
+                    .catch(err => console.error("❌ فشل إرسال مؤشر الكتابة:", err));
+            }
+
+            // إعادة تعيين الوقت
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 2000);
+        }
+
+        // إيقاف الكتابة
+        function stopTyping() {
+            if (isTyping && connection && connection.state === 'Connected') {
+                isTyping = false;
+                connection.invoke("StopTyping", currentChatId)
+                    .catch(err => console.error("❌ فشل إيقاف مؤشر الكتابة:", err));
+            }
+        }
+
+        // عرض الرسالة
+        function displayMessage(message, isSent, time = null, senderId = null, messageId = null) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
+            // إزالة رسالة الترحيب إذا كانت موجودة
+            const welcomeMsg = chatBox.querySelector('.welcome-message');
+            if (welcomeMsg) welcomeMsg.remove();
+
             const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
+
+            if (messageId) {
+                messageDiv.setAttribute('data-message-id', messageId);
+            }
 
             const now = new Date();
             const displayTime = time || now.toLocaleTimeString('ar-EG', {
@@ -622,53 +755,16 @@
                 minute: '2-digit'
             });
 
-            // تحضير محتوى الرسالة
-            const messageContent = escapeHtml(message);
-            const isLongMessage = message.length > 200;
-
             if (isSent) {
-                messageDiv.className = 'message-sent';
-
-                // إذا كانت رسالة طويلة، أضف كلاس خاص
-                if (isLongMessage) {
-                    messageDiv.classList.add('long-message');
-                }
-
-                // إذا كانت رسالة جديدة بدون معرف، فهي مؤقتة
-                if (!messageId) {
-                    const tempId = 'temp_' + Date.now();
-                    messageDiv.setAttribute('data-temp-id', tempId);
-                    messageDiv.classList.add('sending');
-
-                    // تخزين الرسالة المؤقتة
-                    tempMessages.set(tempId, {
-                        message: message,
-                        time: displayTime
-                    });
-                } else {
-                    messageDiv.setAttribute('data-message-id', messageId);
-                    sentMessageIds.add(messageId);
-                }
-
                 messageDiv.innerHTML = `
-                    <div class="message-content ${isLongMessage ? 'multi-line-message' : ''}">${messageContent}</div>
+                    <div class="message-content">${escapeHtml(message)}</div>
                     <span class="message-time">${displayTime}</span>
                 `;
             } else {
-                messageDiv.className = 'message-received';
-
-                // إذا كانت رسالة طويلة، أضف كلاس خاص
-                if (isLongMessage) {
-                    messageDiv.classList.add('long-message');
-                }
-
-                if (messageId) {
-                    messageDiv.setAttribute('data-message-id', messageId);
-                }
-                const senderName = (senderId === currentUserId) ? 'أنت' : 'الدعم';
+                const senderName = 'الدعم الفني';
                 messageDiv.innerHTML = `
                     <div class="message-sender">${senderName}</div>
-                    <div class="message-content ${isLongMessage ? 'multi-line-message' : ''}">${messageContent}</div>
+                    <div class="message-content">${escapeHtml(message)}</div>
                     <span class="message-time">${displayTime}</span>
                 `;
             }
@@ -677,25 +773,17 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // إضافة رسالة نظامية
-        function addSystemMessage(text) {
+        // عرض رسالة نظامية
+        function displaySystemMessage(text) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message-system';
             messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${escapeHtml(text)}`;
+
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // تحديث حالة الاتصال
-        function updateConnectionStatus(status, text) {
-            const statusElement = document.getElementById('connectionStatus');
-            if (statusElement) {
-                statusElement.textContent = text;
-                statusElement.className = status;
-            }
         }
 
         // إرسال رسالة
@@ -703,105 +791,66 @@
             const input = document.getElementById('msgInput');
             const message = input.value.trim();
 
-            if (!message) {
-                showCharLimitWarning('الرجاء كتابة رسالة قبل الإرسال');
+            if (!message) return;
+
+            // التحقق من الطول
+            if (message.length > MAX_CHARS) {
+                alert(`الحد الأقصى ${MAX_CHARS} حرف`);
                 return;
             }
 
-            // التحقق من طول الرسالة
-            if (!validateMessage(message)) {
-                return;
+            // إرسال عبر SignalR
+            if (connection && connection.state === 'Connected') {
+                connection.invoke("SendMessage", currentChatId, message)
+                    .then(() => {
+                        input.value = '';
+                        updateCharCount();
+                        stopTyping();
+                    })
+                    .catch(err => {
+                        console.error("❌ فشل إرسال الرسالة:", err);
+                        displaySystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
+
+                        // محاولة إعادة الإرسال
+                        setTimeout(() => sendMessage(message), 3000);
+                    });
+            } else {
+                displaySystemMessage('الاتصال غير متوفر، جاري إعادة الاتصال...');
             }
-
-            if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
-                alert('الاتصال غير نشط. يرجى الانتظار...');
-                return;
-            }
-
-            // مسح حقل الإدخال
-            input.value = '';
-            updateCharCount(); // تحديث العداد بعد المسح
-
-            // إضافة الرسالة المحلية فوراً (بعلامة قيد الإرسال)
-            addMessageToChat(message, true, null, currentUserId);
-
-            // إرسال الرسالة للخادم
-            connection.invoke("SendMessage", currentChatId, message)
-                .then(() => {
-                    // النجاح معالج في حدث ReceiveMessage
-                    console.log('تم إرسال الرسالة للخادم');
-                })
-                .catch(err => {
-                    console.error("❌ فشل إرسال الرسالة: ", err);
-
-                    // البحث عن الرسالة المؤقتة الأخيرة وتحديث حالتها إلى فاشلة
-                    const tempMessagesArray = Array.from(tempMessages.entries());
-                    if (tempMessagesArray.length > 0) {
-                        const [lastTempId, lastTempData] = tempMessagesArray[tempMessagesArray.length - 1];
-
-                        if (lastTempData.message === message) {
-                            const tempMsg = document.querySelector(`[data-temp-id="${lastTempId}"]`);
-                            if (tempMsg) {
-                                tempMsg.classList.remove('sending');
-                                tempMsg.classList.add('send-failed');
-
-                                const timeSpan = tempMsg.querySelector('.message-time');
-                                if (timeSpan) {
-                                    const warningIcon = document.createElement('i');
-                                    warningIcon.className = 'fas fa-exclamation-triangle';
-                                    warningIcon.title = 'فشل الإرسال';
-                                    timeSpan.appendChild(warningIcon);
-                                }
-
-                                // إزالة من القائمة المؤقتة
-                                tempMessages.delete(lastTempId);
-                            }
-                        }
-                    }
-
-                    addSystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
-
-                    // محاولة إعادة الإرسال بعد 3 ثواني
-                    setTimeout(() => {
-                        if (connection && connection.state === signalR.HubConnectionState.Connected) {
-                            retrySendMessage(message);
-                        }
-                    }, 3000);
-                });
         }
 
-        // إعادة محاولة إرسال الرسالة
-        function retrySendMessage(message) {
-            // التحقق من طول الرسالة مرة أخرى
-            if (!validateMessage(message)) {
-                return;
-            }
+        // تحديث عداد الأحرف
+        function updateCharCount() {
+            const input = document.getElementById('msgInput');
+            const charCount = document.getElementById('charCount');
 
-            // إرسال الرسالة مرة أخرى
-            connection.invoke("SendMessage", currentChatId, message)
-                .then(() => {
-                    console.log('تمت إعادة إرسال الرسالة بنجاح');
-                })
-                .catch(err => {
-                    console.error("❌ فشل إعادة إرسال الرسالة: ", err);
-                });
+            if (!input || !charCount) return;
+
+            const length = input.value.length;
+            charCount.textContent = `${length}/${MAX_CHARS}`;
+
+            // تحديث اللون
+            charCount.className = 'char-count';
+            if (length > MAX_CHARS * 0.8) {
+                charCount.classList.add('warning');
+            }
+            if (length > MAX_CHARS * 0.9) {
+                charCount.classList.add('danger');
+            }
         }
 
         // إنهاء المحادثة
         function endChat() {
-            if (confirm('هل أنت متأكد من إنهاء المحادثة؟ سيتم إغلاق النافذة.')) {
+            if (confirm('هل تريد إنهاء المحادثة؟')) {
                 if (connection) {
                     connection.invoke("LeaveChat", currentChatId)
                         .then(() => {
                             connection.stop();
-                            window.location.href = '/Home';
+                            window.location.href = '/';
                         })
-                        .catch(err => {
-                            console.error('خطأ في إنهاء المحادثة:', err);
-                            window.location.href = '/Home';
-                        });
+                        .catch(err => console.error("❌ فشل إنهاء المحادثة:", err));
                 } else {
-                    window.location.href = '/Home';
+                    window.location.href = '/';
                 }
             }
         }
@@ -813,62 +862,12 @@
             return div.innerHTML;
         }
 
-        // الكشف عن الكتابة
-        function detectTyping() {
-            if (!isTyping && connection && connection.state === signalR.HubConnectionState.Connected) {
-                isTyping = true;
-                connection.invoke("NotifyTyping", currentChatId, currentUserId)
-                    .catch(err => console.error('خطأ في إرسال إشعار الكتابة:', err));
-
-                setTimeout(() => {
-                    isTyping = false;
-                }, 1000);
-            }
-        }
-
-        // عرض مؤشر الكتابة
-        function showTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.style.display = 'block';
-
-                // إخفاء المؤشر بعد 3 ثواني
-                setTimeout(() => {
-                    hideTypingIndicator();
-                }, 3000);
-            }
-        }
-
-        // إخفاء مؤشر الكتابة
-        function hideTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.style.display = 'none';
-            }
-        }
-
-        // الكشف عن إغلاق الصفحة
-        function setupBeforeUnload() {
-            window.addEventListener('beforeunload', function(e) {
-                if (connection && connection.state === signalR.HubConnectionState.Connected) {
-                    // استخدام sendBeacon لإرسال طلب الخروج حتى مع إغلاق الصفحة
-                    navigator.sendBeacon(`/UserChat/Leave?chatId=${currentChatId}`);
-                }
-            });
-        }
-
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // التحقق من صحة البيانات
-            if (!currentUserId || currentUserId === '') {
-                alert('خطأ: لم يتم التعرف على المستخدم');
-                window.location.href = '/Account/Login';
-                return;
-            }
-
-            if (!currentChatId || currentChatId === '0') {
-                alert('خطأ: لم يتم إنشاء محادثة');
-                window.location.href = '/UserChat';
+            // التحقق من البيانات
+            if (!currentUserId || !currentChatId) {
+                alert('خطأ في البيانات، سيتم التوجيه إلى الصفحة الرئيسية');
+                window.location.href = '/';
                 return;
             }
 
@@ -876,47 +875,48 @@
             initializeConnection();
 
             // إعداد الأحداث
+            const input = document.getElementById('msgInput');
             const btnSend = document.getElementById('btnSend');
             const btnEndChat = document.getElementById('btnEndChat');
-            const msgInput = document.getElementById('msgInput');
 
-            if (btnSend) btnSend.addEventListener('click', sendMessage);
-            if (btnEndChat) btnEndChat.addEventListener('click', endChat);
-
-            if (msgInput) {
-                // تحديث عداد الأحرف عند الكتابة
-                msgInput.addEventListener('input', function() {
+            if (input) {
+                input.addEventListener('input', function() {
                     updateCharCount();
-                    detectTyping();
+                    if (this.value.trim()) {
+                        startTyping();
+                    }
                 });
 
-                msgInput.addEventListener('keypress', function(e) {
+                input.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         sendMessage();
                     }
                 });
 
-                // التحقق من الحد عند اللصق
-                msgInput.addEventListener('paste', function(e) {
-                    setTimeout(() => {
-                        const text = msgInput.value;
-                        if (text.length > MAX_CHARS) {
-                            msgInput.value = text.substring(0, MAX_CHARS);
-                            showCharLimitWarning(`تم تقليم الرسالة إلى ${MAX_CHARS} حرف`);
-                        }
-                        updateCharCount();
-                    }, 0);
-                });
+                input.addEventListener('blur', stopTyping);
             }
 
-            // إعداد حدث إغلاق الصفحة
-            setupBeforeUnload();
+            if (btnSend) {
+                btnSend.addEventListener('click', sendMessage);
+            }
+
+            if (btnEndChat) {
+                btnEndChat.addEventListener('click', endChat);
+            }
 
             // التركيز على حقل الإدخال
             setTimeout(() => {
-                if (msgInput) msgInput.focus();
-            }, 500);
+                if (input) input.focus();
+            }, 1000);
+        });
+
+        // إغلاق الصفحة
+        window.addEventListener('beforeunload', function() {
+            if (connection && connection.state === 'Connected') {
+                connection.invoke("LeaveChat", currentChatId)
+                    .catch(err => console.error("❌ فشل الخروج:", err));
+            }
         });
     </script>
 }
