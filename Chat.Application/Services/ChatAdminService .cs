@@ -84,7 +84,8 @@ namespace Chat.Application.Services
                         MessageType = m.MessageType,
                         Status = m.Status,
                         CreatedOn = m.CreatedOn
-                    }).ToList()
+                    }).ToList(),
+                CreatedOn = DateTime.Now
             };
         }
         public async Task<List<ChatSessionDashboardVM>> GetDashboardAsync()

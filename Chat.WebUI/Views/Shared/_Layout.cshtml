@@ -68,7 +68,7 @@
             transition: var(--transition);
             position: fixed;
             top: 0;
-            right: 0;
+            right: 0px;
             width: 100%;
             z-index: 1000;
         }
@@ -81,7 +81,6 @@
 
         .navbar-container {
             max-width: 1400px;
-            margin: 0 auto;
             padding: 0 2rem;
         }
 
@@ -398,6 +397,11 @@
                 font-size: 1.5rem;
             }
 
+            .navbar 
+            {
+                right: -6px;
+            }
+
             .main-content {
                 padding-top: 70px;
             }
@@ -479,12 +483,6 @@
                                 <i class="fas fa-shield-alt me-1"></i>الخصوصية
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-question-circle me-1"></i>المساعدة
-                            </a>
-                        </li>
                     </ul>
 
                     <div class="auth-buttons">
@@ -516,59 +514,44 @@
             </div>
         </nav>
     </header>
-
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
     <div class="main-content">
         <main role="main">
             @RenderBody()
         </main>
     </div>
-
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
     <footer class="footer">
-        <div class="footer-content">
+        <div class="footer-content"> 
             <div class="row align-items-center">
-                <div class="col-lg-4 text-lg-start text-center mb-4 mb-lg-0">
-                    <h3 class="footer-brand">
-                        <i class="fas fa-comments me-2"></i>دردشة مباشرة
-                    </h3>
-                    <p class="text-light opacity-75 mt-3">
-                        نظام دردشة متكامل للتواصل الفوري بين العملاء وفريق الدعم
-                    </p>
-                </div>
-
+               
                 <div class="col-lg-4 text-center">
-                    <div class="footer-links">
-                        <a asp-controller="Home" asp-action="Index" class="footer-link">
-                            <i class="fas fa-home"></i>الرئيسية
-                        </a>
-                        <a asp-controller="Home" asp-action="Privacy" class="footer-link">
-                            <i class="fas fa-shield-alt"></i>الخصوصية
-                        </a>
-                        <a href="#" class="footer-link">
-                            <i class="fas fa-question-circle"></i>المساعدة
-                        </a>
-                    </div>
-
-                    <div class="footer-social">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                    </div>
-                </div>
-
                 <div class="col-lg-4 text-lg-end text-center">
                     <div class="contact-info">
                         <p class="text-light mb-2">
                             <i class="fas fa-envelope me-2"></i>
-                            support@chat-system.com
+                            support@Easacc-system.com
                         </p>
                         <p class="text-light">
                             <i class="fas fa-phone me-2"></i>
@@ -581,6 +564,7 @@
             <div class="footer-copyright">
                 <p>&copy; @DateTime.Now.Year نظام الدردشة المباشرة. جميع الحقوق محفوظة.</p>
             </div>
+        </div>
         </div>
     </footer>
 

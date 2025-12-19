@@ -13,9 +13,7 @@
     bool isClosed = ViewBag.IsClosed != null && (bool)ViewBag.IsClosed;
 }
 
-<br />
-<br />
-<br />
+
 <div class="chat-container">
     <!-- شريط معلومات الدردشة -->
     <div class="chat-header bg-primary text-white p-3 rounded-top">
@@ -50,278 +48,343 @@
     <div class="chat-input p-3 border-top">
         <div class="input-group">
             <input type="text" id="msgInput" class="form-control"
-                   placeholder="اكتب رسالتك هنا..." autocomplete="off"
+                   placeholder="اكتب رسالتك هنا (حد أقصى 500 حرف)..."
+                   autocomplete="off"
+                   maxlength="500"
                    @(isClosed ? "disabled" : "")>
             <button id="btnSend" class="btn btn-primary" @(isClosed ? "disabled" : "")>
                 <i class="fas fa-paper-plane"></i> إرسال
             </button>
         </div>
-        <div class="d-flex justify-content-between mt-2">
+        <div class="d-flex justify-content-between align-items-center mt-2">
             <small class="text-muted">
                 <i class="fas fa-user me-1"></i> أنت: @userName
             </small>
-            <small id="typingIndicator" class="text-muted" style="display:none;">
-                <i class="fas fa-pencil-alt me-1"></i> الدعم يكتب...
-            </small>
+            <div>
+                <small id="charCount" class="text-muted">0/500</small>
+                <small id="typingIndicator" class="text-muted ms-2" style="display:none;">
+                    <i class="fas fa-pencil-alt me-1"></i> الدعم يكتب...
+                </small>
+            </div>
+        </div>
+        <div class="alert alert-warning alert-dismissible fade show mt-2" id="charLimitAlert" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="alertMessage"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     </div>
 </div>
 
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
 
 
-    <style>
-        .chat-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-            background: white;
-        }
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        background: white;
+    }
 
-        .chat-messages {
-            height: 500px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 20px !important;
-        }
+    .chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 20px !important;
+    }
 
-        /* رسائل المرسل */
-        .message-sent {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border-radius: 18px 18px 4px 18px;
-            padding: 12px 16px;
-            max-width: 75%;
-            animation: slideInRight 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+    /* رسائل المرسل */
+    .message-sent {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-radius: 18px 18px 4px 18px;
+        padding: 12px 16px;
+        max-width: 75%;
+        animation: slideInRight 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
 
-            .message-sent .message-time {
-                color: rgba(255,255,255,0.8);
-                text-align: left;
-            }
-
-        /* رسائل المستقبل */
-        .message-received {
-            align-self: flex-start;
-            background: white;
-            color: #333;
-            border-radius: 18px 18px 18px 4px;
-            padding: 12px 16px;
-            max-width: 75%;
-            animation: slideInLeft 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            border: 1px solid #e9ecef;
-        }
-
-            .message-received .message-sender {
-                font-weight: bold;
-                color: #007bff;
-                font-size: 0.85rem;
-                margin-bottom: 4px;
-            }
-
-            .message-received .message-time {
-                color: #6c757d;
-                text-align: right;
-            }
-
-        /* الرسائل النظامية */
-        .message-system {
-            align-self: center;
-            background: #e9ecef;
-            color: #6c757d;
-            border-radius: 20px;
-            padding: 8px 20px;
-            font-size: 0.85rem;
-            max-width: 90%;
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        /* وقت الرسالة */
-        .message-time {
-            display: block;
+        .message-sent .message-time {
+            color: rgba(255,255,255,0.8);
+            text-align: left;
+            margin-top: 8px;
             font-size: 0.7rem;
-            margin-top: 5px;
-            opacity: 0.9;
         }
 
-        /* منطقة الكتابة */
-        .chat-input {
-            background: white;
+    /* رسائل المستقبل */
+    .message-received {
+        align-self: flex-start;
+        background: white;
+        color: #333;
+        border-radius: 18px 18px 18px 4px;
+        padding: 12px 16px;
+        max-width: 75%;
+        animation: slideInLeft 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+        .message-received .message-sender {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
         }
 
-        #msgInput {
-            border-radius: 25px 0 0 25px;
-            border: 2px solid #e9ecef;
-            padding: 12px 20px;
-            transition: all 0.3s;
+        .message-received .message-time {
+            color: #6c757d;
+            text-align: right;
+            margin-top: 8px;
+            font-size: 0.7rem;
         }
 
-            #msgInput:focus {
-                border-color: #007bff;
-                box-shadow: 0 0 0 0.25rem rgba(0,123,255,0.25);
-            }
+    /* الرسائل النظامية */
+    .message-system {
+        align-self: center;
+        background: #e9ecef;
+        color: #6c757d;
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        max-width: 90%;
+        text-align: center;
+        margin: 10px 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
 
-        #btnSend {
-            border-radius: 0 25px 25px 0;
-            padding: 12px 25px;
+    /* وقت الرسالة */
+    .message-time {
+        display: block;
+        opacity: 0.9;
+    }
+
+    /* محتوى الرسالة */
+    .message-content {
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    /* منطقة الكتابة */
+    .chat-input {
+        background: white;
+    }
+
+    #msgInput {
+        border-radius: 25px 0 0 25px;
+        border: 2px solid #e9ecef;
+        padding: 12px 20px;
+        transition: all 0.3s;
+    }
+
+        #msgInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0,123,255,0.25);
         }
 
-        /* مؤشر الكتابة */
-        #typingIndicator {
-            animation: pulse 1.5s infinite;
+        #msgInput.warning {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.25rem rgba(255,193,7,0.25);
         }
 
-        /* الأنيميشن */
-        @@keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        #msgInput.danger {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220,53,69,0.25);
         }
 
-        @@keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
+    #btnSend {
+        border-radius: 0 25px 25px 0;
+        padding: 12px 25px;
+    }
 
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+    /* عداد الأحرف */
+    #charCount {
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+
+        #charCount.warning {
+            color: #ffc107;
         }
 
-        @@keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        /* مخصص لعرض حالة الاتصال */
-        #connectionStatus.connected {
-            color: #28a745;
-        }
-
-        #connectionStatus.disconnected {
+        #charCount.danger {
             color: #dc3545;
         }
 
-        /* تصميم زر إنهاء المحادثة */
-        #btnEndChat:hover {
-            background-color: rgba(255,255,255,0.2);
+    /* مؤشر الكتابة */
+    #typingIndicator {
+        animation: pulse 1.5s infinite;
+    }
+
+    /* الأنيميشن */
+    @@keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
         }
 
-        /* رسالة قيد الإرسال */
-        .sending {
-            opacity: 0.7;
-            border-right: 3px solid #ffc107 !important;
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
         }
 
-        /* رسالة تم إرسالها */
-        .sent-confirmed {
-            border-right: 3px solid #28a745 !important;
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
         }
 
-        /* رسالة فشل إرسالها */
-        .send-failed {
-            border-right: 3px solid #dc3545 !important;
-            opacity: 0.8;
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    /* مخصص لعرض حالة الاتصال */
+    #connectionStatus.connected {
+        color: #28a745;
+    }
+
+    #connectionStatus.disconnected {
+        color: #dc3545;
+    }
+
+    /* تصميم زر إنهاء المحادثة */
+    #btnEndChat:hover {
+        background-color: rgba(255,255,255,0.2);
+    }
+
+    /* رسالة قيد الإرسال */
+    .sending {
+        opacity: 0.7;
+        border-right: 3px solid #ffc107 !important;
+    }
+
+    /* رسالة تم إرسالها */
+    .sent-confirmed {
+        border-right: 3px solid #28a745 !important;
+    }
+
+    /* رسالة فشل إرسالها */
+    .send-failed {
+        border-right: 3px solid #dc3545 !important;
+        opacity: 0.8;
+    }
+
+    /* أيقونة التأكيد */
+    .fa-check-circle {
+        color: #28a745;
+        font-size: 0.7rem;
+        margin-left: 5px;
+    }
+
+    /* أيقونة التحذير */
+    .fa-exclamation-triangle {
+        color: #ffc107;
+        font-size: 0.7rem;
+        margin-left: 5px;
+    }
+
+    /* التمرير */
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
 
-        /* أيقونة التأكيد */
-        .fa-check-circle {
-            color: #28a745;
-            font-size: 0.7rem;
-            margin-left: 5px;
+    /* تصميم للرسائل الطويلة */
+    .long-message {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+        .long-message::-webkit-scrollbar {
+            width: 4px;
         }
 
-        /* أيقونة التحذير */
-        .fa-exclamation-triangle {
-            color: #ffc107;
-            font-size: 0.7rem;
-            margin-left: 5px;
+        .long-message::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
         }
 
-        /* التمرير */
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
+        .long-message::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
         }
 
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+    /* تصميم للجوال */
+    @@media (max-width: 768px) {
+        .chat-container {
+            margin: 0;
+            border-radius: 0;
+            height: 100vh;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
+        .message-sent,
+        .message-received {
+            max-width: 85%;
+            min-width: 60%;
         }
 
-            .chat-messages::-webkit-scrollbar-thumb:hover {
-                background: #a8a8a8;
-            }
-
-        /* تصميم للجوال */
-        @@media (max-width: 768px) {
-            .chat-container {
-                margin: 0;
-                border-radius: 0;
-                height: 100vh;
-            }
-
-            .chat-messages {
-                height: calc(100vh - 180px);
-            }
-
-            .message-sent,
-            .message-received {
-                max-width: 85%;
-            }
+        .message-content {
+            font-size: 0.9rem;
         }
-    </style>
+
+        #charCount {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* تحسين عرض النصوص العربية الطويلة */
+    .message-content {
+        text-align: right;
+        direction: rtl;
+        unicode-bidi: embed;
+    }
+
+    /* تصميم متعدد الأسطر */
+    .multi-line-message {
+        white-space: pre-wrap;
+        overflow: visible;
+    }
+</style>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
@@ -330,6 +393,7 @@
         const currentChatId = "@Model.Id";
         const currentUserId = "@userId";
         const currentUserName = "@userName";
+        const MAX_CHARS = 500;
         let connection = null;
         let isTyping = false;
         let sentMessageIds = new Set(); // لتخزين معرفات الرسائل المرسلة
@@ -339,6 +403,56 @@
         if (!currentUserId) {
             alert('خطأ: لم يتم التعرف على المستخدم. يرجى تسجيل الدخول مرة أخرى.');
             window.location.href = '/Account/Login';
+        }
+
+        // تحديث عداد الأحرف
+        function updateCharCount() {
+            const input = document.getElementById('msgInput');
+            const charCount = document.getElementById('charCount');
+            if (!input || !charCount) return;
+
+            const length = input.value.length;
+            const remaining = MAX_CHARS - length;
+            charCount.textContent = `${length}/${MAX_CHARS}`;
+
+            // تغيير اللون بناءً على عدد الأحرف المتبقية
+            charCount.classList.remove('warning', 'danger');
+            input.classList.remove('warning', 'danger');
+
+            if (remaining <= 100 && remaining > 50) {
+                charCount.classList.add('warning');
+                input.classList.add('warning');
+            } else if (remaining <= 50 && remaining > 0) {
+                charCount.classList.add('danger');
+                input.classList.add('danger');
+            } else if (remaining <= 0) {
+                charCount.classList.add('danger');
+                input.classList.add('danger');
+            }
+        }
+
+        // عرض تحذير عند تجاوز الحد
+        function showCharLimitWarning(message) {
+            const alertDiv = document.getElementById('charLimitAlert');
+            const alertMessage = document.getElementById('alertMessage');
+            if (alertDiv && alertMessage) {
+                alertMessage.textContent = message;
+                alertDiv.style.display = 'block';
+
+                // إخفاء التحذير بعد 5 ثواني
+                setTimeout(() => {
+                    alertDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // التحقق من طول الرسالة
+        function validateMessage(message) {
+            if (message.length > MAX_CHARS) {
+                showCharLimitWarning(`تجاوزت الحد المسموح (${MAX_CHARS} حرف). الرجاء تقصير الرسالة.`);
+                return false;
+            }
+            return true;
         }
 
         // تهيئة الاتصال بـ SignalR
@@ -488,7 +602,7 @@
         // تحديث الرسالة المؤقتة بعد استلامها من الخادم
         function updateTempMessage(messageId, message, time) {
             // البحث في جميع الرسائل المؤقتة
-            for (let [tempId, tempData] of tempMessages) {
+            for (let [tempId, tempData] of tempMessages.entries()) {
                 if (tempData.message === message) {
                     const tempElement = document.querySelector(`[data-temp-id="${tempId}"]`);
                     if (tempElement) {
@@ -522,7 +636,7 @@
             }
         }
 
-        // إضافة رسالة للدردشة
+        // إضافة رسالة للدردشة مع معالجة النصوص الطويلة
         function addMessageToChat(message, isSent, time = null, senderId = null, messageId = null) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
@@ -535,8 +649,17 @@
                 minute: '2-digit'
             });
 
+            // تحضير محتوى الرسالة
+            const messageContent = escapeHtml(message);
+            const isLongMessage = message.length > 200;
+
             if (isSent) {
                 messageDiv.className = 'message-sent';
+
+                // إذا كانت رسالة طويلة، أضف كلاس خاص
+                if (isLongMessage) {
+                    messageDiv.classList.add('long-message');
+                }
 
                 // إذا كانت رسالة جديدة بدون معرف، فهي مؤقتة
                 if (!messageId) {
@@ -555,18 +678,24 @@
                 }
 
                 messageDiv.innerHTML = `
-                    <div class="message-content">${escapeHtml(message)}</div>
+                    <div class="message-content ${isLongMessage ? 'multi-line-message' : ''}">${messageContent}</div>
                     <span class="message-time">${displayTime}</span>
                 `;
             } else {
                 messageDiv.className = 'message-received';
+
+                // إذا كانت رسالة طويلة، أضف كلاس خاص
+                if (isLongMessage) {
+                    messageDiv.classList.add('long-message');
+                }
+
                 if (messageId) {
                     messageDiv.setAttribute('data-message-id', messageId);
                 }
                 const senderName = (senderId === currentUserId) ? 'أنت' : 'الدعم';
                 messageDiv.innerHTML = `
                     <div class="message-sender">${senderName}</div>
-                    <div class="message-content">${escapeHtml(message)}</div>
+                    <div class="message-content ${isLongMessage ? 'multi-line-message' : ''}">${messageContent}</div>
                     <span class="message-time">${displayTime}</span>
                 `;
             }
@@ -582,7 +711,7 @@
 
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message-system';
-            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${text}`;
+            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${escapeHtml(text)}`;
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -601,14 +730,24 @@
             const input = document.getElementById('msgInput');
             const message = input.value.trim();
 
-            if (!message) return;
+            if (!message) {
+                showCharLimitWarning('الرجاء كتابة رسالة قبل الإرسال');
+                return;
+            }
+
+            // التحقق من طول الرسالة
+            if (!validateMessage(message)) {
+                return;
+            }
+
             if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
                 alert('الاتصال غير نشط. يرجى الانتظار...');
                 return;
             }
 
-            // مسح حقل الإدخال أولاً
+            // مسح حقل الإدخال
             input.value = '';
+            updateCharCount(); // تحديث العداد بعد المسح
 
             // إضافة الرسالة المحلية فوراً (بعلامة قيد الإرسال)
             addMessageToChat(message, true, null, currentUserId);
@@ -660,6 +799,11 @@
 
         // إعادة محاولة إرسال الرسالة
         function retrySendMessage(message) {
+            // التحقق من طول الرسالة مرة أخرى
+            if (!validateMessage(message)) {
+                return;
+            }
+
             // إرسال الرسالة مرة أخرى
             connection.invoke("SendMessage", currentChatId, message)
                 .then(() => {
@@ -684,7 +828,7 @@
                             window.location.href = '/Home';
                         });
                 } else {
-                            window.location.href = '/Home';
+                    window.location.href = '/Home';
                 }
             }
         }
@@ -767,6 +911,12 @@
             if (btnEndChat) btnEndChat.addEventListener('click', endChat);
 
             if (msgInput) {
+                // تحديث عداد الأحرف عند الكتابة
+                msgInput.addEventListener('input', function() {
+                    updateCharCount();
+                    detectTyping();
+                });
+
                 msgInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -774,8 +924,17 @@
                     }
                 });
 
-                // الكشف عن الكتابة عند الكتابة
-                msgInput.addEventListener('input', detectTyping);
+                // التحقق من الحد عند اللصق
+                msgInput.addEventListener('paste', function(e) {
+                    setTimeout(() => {
+                        const text = msgInput.value;
+                        if (text.length > MAX_CHARS) {
+                            msgInput.value = text.substring(0, MAX_CHARS);
+                            showCharLimitWarning(`تم تقليم الرسالة إلى ${MAX_CHARS} حرف`);
+                        }
+                        updateCharCount();
+                    }, 0);
+                });
             }
 
             // إعداد حدث إغلاق الصفحة
