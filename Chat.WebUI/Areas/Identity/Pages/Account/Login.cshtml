@@ -2,82 +2,303 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "تسجيل الدخول";
+    Layout = "_Layout";
 }
-
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
+<br /><br /><br /><br /><br />
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <!-- جانب الصورة -->
+                    <div class="col-lg-6 d-none d-lg-block">
+                        <div class="login-side h-100 position-relative">
+                            <div class="login-overlay"></div>
+                            <div class="position-absolute top-0 start-0 w-100 h-100 p-5 text-white">
+                                <div class="h-100 d-flex flex-column justify-content-center">
+                                    <h2 class="display-5 fw-bold mb-4">مرحباً بعودتك!</h2>
+                                    <p class="lead mb-4">
+                                        سجل الدخول للوصول إلى نظام الدردشة المباشرة والاستفادة من جميع المميزات
+                                    </p>
+                                    <div class="features-list">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-check-circle fa-lg me-3"></i>
+                                            <span>دعم فني على مدار الساعة</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-check-circle fa-lg me-3"></i>
+                                            <span>تشفير كامل للمحادثات</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-check-circle fa-lg me-3"></i>
+                                            <span>سرعة فائقة في الرد</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                }
-            }
-        </section>
+                    </div>
+
+                    <!-- جانب النموذج -->
+                    <div class="col-lg-6">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-5">
+                                <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                                    <h3 class="fw-bold text-primary mb-2">
+                                        <i class="fas fa-comments me-2"></i>نظام الدردشة
+                                    </h3>
+                                </a>
+                                <p class="text-muted">سجل الدخول إلى حسابك</p>
+                            </div>
+
+                            <form id="account" method="post">
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                                <!-- حقل البريد الإلكتروني -->
+                                <div class="form-group mb-4">
+                                    <label asp-for="Input.Email" class="form-label fw-bold">
+                                        <i class="fas fa-envelope me-2 text-primary"></i>البريد الإلكتروني
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </span>
+                                        <input asp-for="Input.Email" class="form-control border-start-0"
+                                               autocomplete="username" aria-required="true"
+                                               placeholder="example@email.com" />
+                                    </div>
+                                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                                </div>
+
+                                <!-- حقل كلمة المرور -->
+                                <div class="form-group mb-4">
+                                    <label asp-for="Input.Password" class="form-label fw-bold">
+                                        <i class="fas fa-lock me-2 text-primary"></i>كلمة المرور
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-key text-muted"></i>
+                                        </span>
+                                        <input asp-for="Input.Password" class="form-control border-start-0"
+                                               autocomplete="current-password" aria-required="true"
+                                               placeholder="أدخل كلمة المرور" />
+                                        <button type="button" class="btn btn-outline-secondary toggle-password"
+                                                data-target="Input_Password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                                </div>
+
+                                <!-- تذكرني -->
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                                    <label class="form-check-label" asp-for="Input.RememberMe">
+                                        تذكر بيانات الدخول
+                                    </label>
+                                </div>
+
+                                <!-- زر تسجيل الدخول -->
+                                <div class="d-grid gap-2">
+                                    <button id="login-submit" type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                                    </button>
+                                </div>
+
+                                <!-- الروابط المساعدة -->
+                                <div class="text-center mt-4">
+                                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                                        <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">
+                                            <i class="fas fa-question-circle me-1"></i>نسيت كلمة المرور؟
+                                        </a>
+                                        <span class="text-muted">|</span>
+                                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">
+                                            <i class="fas fa-user-plus me-1"></i>إنشاء حساب جديد
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- فاصل -->
+                                <div class="position-relative my-4">
+                                    <hr class="text-muted" />
+                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">
+                                        أو
+                                    </span>
+                                </div>
+
+                                <!-- الدخول باستخدام حسابات خارجية -->
+                                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                                {
+                                    <div class="text-center">
+                                        <p class="text-muted mb-3">سجل الدخول باستخدام:</p>
+                                        <form id="external-account" asp-page="./ExternalLogin"
+                                              asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                                @foreach (var provider in Model.ExternalLogins!)
+                                                {
+                                                    <button type="submit" class="btn btn-outline-primary"
+                                                            name="provider" value="@provider.Name"
+                                                            title="تسجيل الدخول باستخدام حساب @provider.DisplayName">
+                                                        <i class="fab fa-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
+                                                    </button>
+                                                }
+                                            </div>
+                                        </form>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إحصائيات صغيرة -->
+            <div class="row mt-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 bg-primary bg-opacity-10 rounded-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+                            <h6 class="fw-bold mb-1">أمان تام</h6>
+                            <p class="text-muted small mb-0">تشفير متقدم للبيانات</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 bg-success bg-opacity-10 rounded-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bolt fa-2x text-success mb-2"></i>
+                            <h6 class="fw-bold mb-1">سرعة فائقة</h6>
+                            <p class="text-muted small mb-0">ردود فورية للمستخدمين</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 bg-info bg-opacity-10 rounded-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-headset fa-2x text-info mb-2"></i>
+                            <h6 class="fw-bold mb-1">دعم 24/7</h6>
+                            <p class="text-muted small mb-0">متاح على مدار الساعة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+
+    <style>
+        .login-side {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .login-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .features-list i {
+            color: #4ade80;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: all 0.3s;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        .toggle-password {
+            border-color: #dee2e6;
+            border-left: none;
+        }
+
+            .toggle-password:hover {
+                background-color: #f8f9fa;
+            }
+
+        /* تخصيص للأجهزة المحمولة */
+        @@media (max-width: 992px) {
+            .login-side {
+                height: 300px !important;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .card-body {
+                padding: 2rem !important;
+            }
+        }
+    </style>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // إظهار/إخفاء كلمة المرور
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        // إضافة تأثير عند التركيز على الحقول
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focus');
+            });
+
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focus');
+            });
+        });
+    </script>
 }

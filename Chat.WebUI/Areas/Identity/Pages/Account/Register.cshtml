@@ -1,67 +1,409 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "إنشاء حساب جديد";
+    Layout = "_Layout";
 }
-
-<h1>@ViewData["Title"]</h1>
-
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
+<br /><br /><br /><br /><br /><br /><br />
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <!-- جانب الصورة -->
+                    <div class="col-lg-5 d-none d-lg-block">
+                        <div class="register-side h-100 position-relative">
+                            <div class="register-overlay"></div>
+                            <div class="position-absolute top-0 start-0 w-100 h-100 p-4 text-white">
+                                <div class="h-100 d-flex flex-column justify-content-center">
+                                    <h3 class="fw-bold mb-3">انضم إلينا اليوم!</h3>
+                                    <p class="mb-4">
+                                        أنشئ حسابك للوصول إلى جميع ميزات نظام الدردشة المباشرة
+                                    </p>
+                                    <div class="benefits-list">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle fa-sm me-2"></i>
+                                            <span>تواصل مباشر مع فريق الدعم</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle fa-sm me-2"></i>
+                                            <span>حفظ تاريخ المحادثات</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle fa-sm me-2"></i>
+                                            <span>إرسال واستقبال الملفات</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle fa-sm me-2"></i>
+                                            <span>دعم فني متخصص</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                }
-            }
-        </section>
+                    </div>
+
+                    <!-- جانب النموذج -->
+                    <div class="col-lg-7">
+                        <div class="card-body p-4 p-lg-5">
+                            <div class="text-center mb-4">
+                                <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                                    <h3 class="fw-bold text-primary mb-2">
+                                        <i class="fas fa-comments me-2"></i>نظام الدردشة
+                                    </h3>
+                                </a>
+                                <p class="text-muted">أنشئ حسابك الجديد</p>
+                            </div>
+
+                            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                                <!-- حقل البريد الإلكتروني -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Email" class="form-label fw-bold">
+                                        <i class="fas fa-envelope me-2 text-primary"></i>البريد الإلكتروني
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-at text-muted"></i>
+                                        </span>
+                                        <input asp-for="Input.Email" class="form-control border-start-0"
+                                               autocomplete="username" aria-required="true"
+                                               placeholder="example@email.com" />
+                                    </div>
+                                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                                    <small class="form-text text-muted">سوف نرسل رسالة تأكيد على هذا البريد</small>
+                                </div>
+
+                                <!-- حقل كلمة المرور -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Password" class="form-label fw-bold">
+                                        <i class="fas fa-lock me-2 text-primary"></i>كلمة المرور
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-key text-muted"></i>
+                                        </span>
+                                        <input asp-for="Input.Password" class="form-control border-start-0"
+                                               autocomplete="new-password" aria-required="true"
+                                               placeholder="أنشئ كلمة مرور قوية" />
+                                        <button type="button" class="btn btn-outline-secondary toggle-password"
+                                                data-target="Input_Password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                                    <div class="password-strength mt-2">
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                        <small class="form-text text-muted" id="password-strength-text">قوة كلمة المرور: ضعيفة</small>
+                                    </div>
+                                </div>
+
+                                <!-- حقل تأكيد كلمة المرور -->
+                                <div class="form-group mb-4">
+                                    <label asp-for="Input.ConfirmPassword" class="form-label fw-bold">
+                                        <i class="fas fa-lock me-2 text-primary"></i>تأكيد كلمة المرور
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-key text-muted"></i>
+                                        </span>
+                                        <input asp-for="Input.ConfirmPassword" class="form-control border-start-0"
+                                               autocomplete="new-password" aria-required="true"
+                                               placeholder="أعد إدخال كلمة المرور" />
+                                        <button type="button" class="btn btn-outline-secondary toggle-password"
+                                                data-target="Input_ConfirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                                    <small class="form-text text-muted" id="password-match-text"></small>
+                                </div>
+
+                                <!-- شروط الخدمة -->
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="termsCheck" required />
+                                    <label class="form-check-label" for="termsCheck">
+                                        أوافق على <a href="#" class="text-primary">شروط الخدمة</a> و <a href="#" class="text-primary">سياسة الخصوصية</a>
+                                    </label>
+                                </div>
+
+                                <!-- زر التسجيل -->
+                                <div class="d-grid gap-2">
+                                    <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>إنشاء حساب
+                                    </button>
+                                </div>
+
+                                <!-- رابط تسجيل الدخول -->
+                                <div class="text-center mt-4">
+                                    <p class="text-muted mb-0">هل لديك حساب بالفعل؟</p>
+                                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-primary mt-2">
+                                        <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                                    </a>
+                                </div>
+
+                                <!-- فاصل -->
+                                <div class="position-relative my-4">
+                                    <hr class="text-muted" />
+                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">
+                                        أو
+                                    </span>
+                                </div>
+
+                                <!-- التسجيل باستخدام حسابات خارجية -->
+                                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                                {
+                                    <div class="text-center">
+                                        <p class="text-muted mb-3">سجل باستخدام:</p>
+                                        <form id="external-account" asp-page="./ExternalLogin"
+                                              asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                                @foreach (var provider in Model.ExternalLogins!)
+                                                {
+                                                    <button type="submit" class="btn btn-outline-primary"
+                                                            name="provider" value="@provider.Name"
+                                                            title="التسجيل باستخدام حساب @provider.DisplayName">
+                                                        <i class="fab fa-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
+                                                    </button>
+                                                }
+                                            </div>
+                                        </form>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
 </div>
+<br />
+
+    <style>
+        .register-side {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .register-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .benefits-list i {
+            color: #60a5fa;
+        }
+
+        .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none;
+            transition: all 0.3s;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        .toggle-password {
+            border-color: #dee2e6;
+            border-left: none;
+        }
+
+            .toggle-password:hover {
+                background-color: #f8f9fa;
+            }
+
+        .password-strength .progress-bar {
+            transition: width 0.3s;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4f46e520 0%, #7c3aed20 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* تخصيص للأجهزة المحمولة */
+        @@media (max-width: 992px) {
+            .register-side {
+                height: 250px !important;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+                .feature-icon i {
+                    font-size: 1.5rem;
+                }
+        }
+    </style>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // إظهار/إخفاء كلمة المرور
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        // فحص قوة كلمة المرور
+        const passwordInput = document.getElementById('Input_Password');
+        const confirmPasswordInput = document.getElementById('Input_ConfirmPassword');
+        const progressBar = document.querySelector('.progress-bar');
+        const strengthText = document.getElementById('password-strength-text');
+        const matchText = document.getElementById('password-match-text');
+
+        function checkPasswordStrength(password) {
+            let strength = 0;
+
+            // طول كلمة المرور
+            if (password.length >= 8) strength += 25;
+            if (password.length >= 12) strength += 15;
+
+            // وجود أحرف متنوعة
+            if (/[a-z]/.test(password)) strength += 10;
+            if (/[A-Z]/.test(password)) strength += 10;
+            if (/[0-9]/.test(password)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+            // تحديث شريط التقدم
+            progressBar.style.width = strength + '%';
+
+            // تحديث النص والألوان
+            if (strength < 30) {
+                progressBar.className = 'progress-bar bg-danger';
+                strengthText.textContent = 'قوة كلمة المرور: ضعيفة';
+            } else if (strength < 60) {
+                progressBar.className = 'progress-bar bg-warning';
+                strengthText.textContent = 'قوة كلمة المرور: متوسطة';
+            } else if (strength < 80) {
+                progressBar.className = 'progress-bar bg-info';
+                strengthText.textContent = 'قوة كلمة المرور: جيدة';
+            } else {
+                progressBar.className = 'progress-bar bg-success';
+                strengthText.textContent = 'قوة كلمة المرور: قوية';
+            }
+        }
+
+        function checkPasswordMatch() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (confirmPassword === '') {
+                matchText.textContent = '';
+                matchText.className = 'form-text text-muted';
+            } else if (password === confirmPassword) {
+                matchText.textContent = '✓ كلمات المرور متطابقة';
+                matchText.className = 'form-text text-success';
+            } else {
+                matchText.textContent = '✗ كلمات المرور غير متطابقة';
+                matchText.className = 'form-text text-danger';
+            }
+        }
+
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            checkPasswordMatch();
+        });
+
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+        // التحقق من شروط الخدمة
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const termsCheck = document.getElementById('termsCheck');
+            if (!termsCheck.checked) {
+                e.preventDefault();
+                alert('يرجى الموافقة على شروط الخدمة وسياسة الخصوصية');
+                termsCheck.focus();
+            }
+        });
+
+        // تأثير عند التركيز على الحقول
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.parentElement.classList.add('focus');
+            });
+
+            input.addEventListener('blur', function() {
+                this.parentElement.parentElement.classList.remove('focus');
+            });
+        });
+    </script>
 }

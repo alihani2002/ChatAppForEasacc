@@ -1,8 +1,1276 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "نظام الدردشة المباشرة";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6 order-lg-1 order-2">
+                    <div class="hero-content">
+                        <h6 class="hero-subtitle animate-on-scroll" data-animation="fadeInUp">
+                            <span class="badge bg-gradient-primary">✨ نظام حديث</span>
+                            التواصل الفوري مع فريق الدعم
+                        </h6>
+
+                        <h1 class="hero-title animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                            نظام <span class="text-gradient">الدردشة المباشرة</span>
+                            للتواصل الفوري الآمن
+                        </h1>
+
+                        <p class="hero-description animate-on-scroll" data-animation="fadeInUp" data-delay="0.4">
+                            نظام دردشة متكامل ومتطور يربط العملاء بممثلي الدعم بشكل فوري وآمن.
+                            تجربة مستخدم استثنائية، دعم فني متاح 24/7، وأدوات متقدمة لإدارة المحادثات.
+                        </p>
+
+                        <div class="hero-cta animate-on-scroll" data-animation="fadeInUp" data-delay="0.6">
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                @if (User.IsInRole(Chat.Core.AppRoles.Admin))
+                                {
+                                    <a asp-controller="Chat" asp-action="Index" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                        <i class="fas fa-headset me-2"></i>دخول لوحة التحكم
+                                    </a>
+                                }
+                                else if (User.IsInRole(Chat.Core.AppRoles.User))
+                                {
+                                    <a asp-controller="UserChat" asp-action="Index" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                        <i class="fas fa-comment-dots me-2"></i>ابدأ محادثة جديدة
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-wrap gap-3">
+                                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                        <i class="fas fa-user-plus me-2"></i>إنشاء حساب جديد
+                                    </a>
+                                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-lg px-5 py-3">
+                                        <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                                    </a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="hero-stats animate-on-scroll" data-animation="fadeInUp" data-delay="0.8">
+                            <div class="row g-4">
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="stat-number">99.9%</h3>
+                                        <p class="stat-label">نسبة التوفر</p>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="stat-number">&lt; 3s</h3>
+                                        <p class="stat-label">متوسط وقت الرد</p>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <h3 class="stat-number">10K+</h3>
+                                        <p class="stat-label">مستخدم نشط</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 order-lg-2 order-1 mb-5 mb-lg-0">
+                    <div class="hero-visual animate-on-scroll" data-animation="zoomIn">
+                        <!-- Floating Elements -->
+                        <div class="floating-elements">
+                            <div class="floating-element element-1"></div>
+                            <div class="floating-element element-2"></div>
+                            <div class="floating-element element-3"></div>
+                            <div class="floating-element element-4"></div>
+                        </div>
+
+                        <!-- Chat Preview -->
+                        <div class="chat-preview-container">
+                            <div class="chat-window">
+                                <div class="chat-header">
+                                    <div class="chat-header-content">
+                                        <div class="avatar status-online">
+                                            <img src="https://ui-avatars.com/api/?name=الدعم+الفني&background=4361ee&color=fff" alt="الدعم">
+                                        </div>
+                                        <div class="chat-info">
+                                            <h6>الدعم الفني المباشر</h6>
+                                            <small>متصل الآن • يكتب...</small>
+                                        </div>
+                                    </div>
+                                    <div class="chat-actions">
+                                        <button class="btn-action">
+                                            <i class="fas fa-video"></i>
+                                        </button>
+                                        <button class="btn-action">
+                                            <i class="fas fa-phone"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="chat-body">
+                                    <div class="message incoming">
+                                        <div class="message-content">
+                                            <p>مرحباً! كيف يمكنني مساعدتك اليوم؟</p>
+                                            <span class="message-time">2:30 PM</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="message outgoing">
+                                        <div class="message-content">
+                                            <p>أحتاج مساعدة في إعداد حسابي الجديد</p>
+                                            <span class="message-time">2:31 PM</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="message incoming">
+                                        <div class="message-content">
+                                            <p>بالتأكيد! سأوجهك خلال الخطوات</p>
+                                            <span class="message-time">2:32 PM</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="typing-indicator">
+                                        <div class="typing-dots">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                        <span>الدعم يكتب...</span>
+                                    </div>
+                                </div>
+
+                                <div class="chat-footer">
+                                    <div class="message-input">
+                                        <input type="text" placeholder="اكتب رسالتك هنا..." readonly>
+                                        <button class="btn-send">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section py-6">
+        <div class="container">
+            <div class="section-header text-center mb-6">
+                <h6 class="section-subtitle animate-on-scroll" data-animation="fadeInUp">لماذا تختار نظامنا؟</h6>
+                <h2 class="section-title animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                    مميزات <span class="text-gradient">استثنائية</span>
+                </h2>
+                <p class="section-description animate-on-scroll" data-animation="fadeInUp" data-delay="0.4">
+                    نظام متكامل مصمم بتقنيات حديثة ليوفر أفضل تجربة دردشة
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h4 class="feature-title">سرعة فائقة</h4>
+                        <p class="feature-description">
+                            رسائل فورية بدون تأخير مع تقنية SignalR المتقدمة
+                            ودعم للاتصال المباشر في الوقت الحقيقي
+                        </p>
+                        <div class="feature-badge">جديد</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="feature-title">أمان متقدم</h4>
+                        <p class="feature-description">
+                            تشفير من طرف إلى طرف، مصادقة متعددة العوامل،
+                            وحماية كاملة لبيانات المحادثات
+                        </p>
+                        <div class="feature-badge">مميز</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.4">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4 class="feature-title">مساعد ذكي</h4>
+                        <p class="feature-description">
+                            مساعد ذكي يعمل بالذكاء الاصطناعي للإجابة التلقائية
+                            على الاستفسارات الشائعة
+                        </p>
+                        <div class="feature-badge">AI</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="feature-title">تقارير وتحليلات</h4>
+                        <p class="feature-description">
+                            لوحة تحكم متقدمة مع تقارير تفصيلية
+                            وتحليلات ذكية لأداء المحادثات
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.4">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4 class="feature-title">متعدد المنصات</h4>
+                        <p class="feature-description">
+                            نظام متوافق مع جميع الأجهزة والمنصات
+                            مع تطبيقات خاصة للأجهزة المحمولة
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.6">
+                        <div class="feature-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4 class="feature-title">تكامل سهل</h4>
+                        <p class="feature-description">
+                            واجهات برمجة سهلة للتكامل مع أنظمتك الحالية
+                            ودعم فني متخصص للتطوير
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section py-6 bg-light">
+        <div class="container">
+            <div class="section-header text-center mb-6">
+                <h6 class="section-subtitle animate-on-scroll" data-animation="fadeInUp">كيف يعمل النظام؟</h6>
+                <h2 class="section-title animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                    خطوات <span class="text-gradient">سهلة</span> للبدء
+                </h2>
+            </div>
+
+            <div class="row g-5">
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card animate-on-scroll" data-animation="fadeInUp">
+                        <div class="step-number">01</div>
+                        <div class="step-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h4 class="step-title">إنشاء حساب</h4>
+                        <p class="step-description">
+                            سجل في النظام خلال دقائق
+                            باستخدام بريدك الإلكتروني
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.2">
+                        <div class="step-number">02</div>
+                        <div class="step-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <h4 class="step-title">تسجيل الدخول</h4>
+                        <p class="step-description">
+                            ادخل إلى حسابك باستخدام
+                            بيانات الاعتماد الخاصة بك
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.4">
+                        <div class="step-number">03</div>
+                        <div class="step-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h4 class="step-title">ابدأ المحادثة</h4>
+                        <p class="step-description">
+                            اختر قسم الدعم المناسب
+                            وابدأ محادثة جديدة
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card animate-on-scroll" data-animation="fadeInUp" data-delay="0.6">
+                        <div class="step-number">04</div>
+                        <div class="step-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4 class="step-title">احصل على الدعم</h4>
+                        <p class="step-description">
+                            تواصل مع ممثل الدعم
+                            واحصل على المساعدة الفورية
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-6">
+        <div class="container">
+            <div class="stats-card animate-on-scroll" data-animation="zoomIn">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-item-large">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="stat-number" data-count="10000">10,000+</h3>
+                            <p class="stat-label">مستخدم نشط</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-item-large">
+                            <div class="stat-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <h3 class="stat-number" data-count="500000">500,000+</h3>
+                            <p class="stat-label">محادثة مكتملة</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-item-large">
+                            <div class="stat-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3 class="stat-number" data-count="99.8">99.8%</h3>
+                            <p class="stat-label">رضا العملاء</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-item-large">
+                            <div class="stat-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <h3 class="stat-number" data-count="24">24/7</h3>
+                            <p class="stat-label">دعم فني</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-6">
+        <div class="container">
+            <div class="cta-card animate-on-scroll" data-animation="fadeInUp">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h2 class="cta-title">جاهز للبدء مع نظام الدردشة المتطور؟</h2>
+                        <p class="cta-description">
+                            انضم إلى آلاف المؤسسات التي تستخدم نظامنا للتواصل الفعال مع عملائها
+                        </p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end text-center">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            @if (User.IsInRole(Chat.Core.AppRoles.Admin))
+                            {
+                                <a asp-controller="Admin" asp-action="Chat" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                    <i class="fas fa-headset me-2"></i>لوحة التحكم
+                                </a>
+                            }
+                            else if (User.IsInRole(Chat.Core.AppRoles.User))
+                            {
+                                <a asp-controller="UserChat" asp-action="Index" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                    <i class="fas fa-comment-dots me-2"></i>ابدأ محادثة
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-gradient-primary btn-lg px-5 py-3">
+                                <i class="fas fa-user-plus me-2"></i>إنشاء حساب مجاني
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
+
+<style>
+    /* ===== HERO SECTION ===== */
+    .hero-section {
+        padding: 100px 0 50px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.08) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(76, 201, 240, 0.08) 0%, transparent 50%);
+        }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+        .hero-subtitle .badge {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 20px;
+            animation: pulse 2s infinite;
+        }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+    }
+
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+    }
+
+    .text-gradient {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-description {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: #64748b;
+        margin-bottom: 2.5rem;
+        max-width: 90%;
+    }
+
+    .hero-cta {
+        margin-bottom: 3rem;
+    }
+
+    .btn-gradient-primary {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        font-weight: 600;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .btn-gradient-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-gradient-primary:hover::before {
+            right: 100%;
+        }
+
+        .btn-gradient-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+        }
+
+    .btn-outline-primary {
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+        .btn-outline-primary:hover {
+            background: var(--gradient-primary);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .hero-stats {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        max-width: 500px;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* ===== CHAT PREVIEW ===== */
+    .hero-visual {
+        position: relative;
+        padding: 2rem;
+    }
+
+    .floating-elements {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .floating-element {
+        position: absolute;
+        background: var(--gradient-accent);
+        border-radius: 20px;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .element-1 {
+        width: 60px;
+        height: 60px;
+        top: 10%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .element-2 {
+        width: 40px;
+        height: 40px;
+        bottom: 20%;
+        right: 15%;
+        animation-delay: 1s;
+    }
+
+    .element-3 {
+        width: 50px;
+        height: 50px;
+        top: 40%;
+        right: 5%;
+        animation-delay: 2s;
+    }
+
+    .element-4 {
+        width: 30px;
+        height: 30px;
+        bottom: 10%;
+        left: 20%;
+        animation-delay: 3s;
+    }
+
+    .chat-preview-container {
+        position: relative;
+        z-index: 2;
+        transform: perspective(1000px) rotateY(-5deg);
+        transition: transform 0.5s;
+    }
+
+        .chat-preview-container:hover {
+            transform: perspective(1000px) rotateY(0deg);
+        }
+
+    .chat-window {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .chat-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 1.2rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid rgba(255,255,255,0.3);
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .status-online::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background: #10b981;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .chat-info h6 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .chat-info small {
+        opacity: 0.9;
+        font-size: 0.85rem;
+    }
+
+    .chat-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+        .btn-action:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+    .chat-body {
+        padding: 1.5rem;
+        height: 280px;
+        overflow-y: auto;
+        background: #f8fafc;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        animation: messageIn 0.3s ease;
+    }
+
+        .message.incoming {
+            margin-left: auto;
+            max-width: 80%;
+        }
+
+        .message.outgoing {
+            margin-right: auto;
+            max-width: 80%;
+        }
+
+    .message-content {
+        padding: 0.8rem 1.2rem;
+        border-radius: 18px;
+        position: relative;
+    }
+
+    .message.incoming .message-content {
+        background: white;
+        border: 1px solid #e2e8f0;
+    }
+
+    .message.outgoing .message-content {
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 0.3rem;
+        display: block;
+    }
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.2rem;
+        background: white;
+        border-radius: 18px;
+        max-width: 120px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+            .typing-dots span:nth-child(1) {
+                animation-delay: 0s;
+            }
+
+            .typing-dots span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .typing-dots span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+    .chat-footer {
+        padding: 1rem 1.5rem;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .message-input {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+        .message-input input {
+            flex: 1;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 25px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+            .message-input input:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            }
+
+    .btn-send {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+        .btn-send:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+    /* ===== FEATURES SECTION ===== */
+    .features-section {
+        background: white;
+    }
+
+    .section-header {
+        margin-bottom: 4rem;
+    }
+
+    .section-subtitle {
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .section-description {
+        color: #64748b;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #f1f5f9;
+        transition: var(--transition);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-color);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(76, 201, 240, 0.1) 100%);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+        font-size: 1.8rem;
+    }
+
+    .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1e293b;
+    }
+
+    .feature-description {
+        color: #64748b;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        background: var(--gradient-accent);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 15px;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .how-it-works-section {
+        background: #f8fafc;
+    }
+
+    .step-card {
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .step-number {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        font-size: 4rem;
+        font-weight: 800;
+        color: rgba(67, 97, 238, 0.1);
+        line-height: 1;
+    }
+
+    .step-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--gradient-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: white;
+        font-size: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1e293b;
+    }
+
+    .step-description {
+        color: #64748b;
+        line-height: 1.7;
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius);
+        padding: 3rem;
+    }
+
+    .stat-item-large {
+        text-align: center;
+    }
+
+        .stat-item-large .stat-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .stat-item-large .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item-large .stat-label {
+            color: #cbd5e0;
+            font-size: 1.1rem;
+        }
+
+    /* ===== CTA SECTION ===== */
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .cta-card {
+        background: white;
+        padding: 3rem;
+        border-radius: var(--border-radius);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .cta-description {
+        color: #64748b;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @@keyframes messageIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+
+        30% {
+            transform: translateY(-5px);
+        }
+    }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(180deg);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    }
+
+    /* ===== ANIMATION CLASSES ===== */
+    .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @@media (max-width: 992px) {
+        .hero-section {
+            padding: 80px 0 30px;
+        }
+
+        .chat-preview-container {
+            transform: none;
+            margin-top: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .cta-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-stats {
+            max-width: 100%;
+        }
+
+        .stat-item-large .stat-number {
+            font-size: 2.5rem;
+        }
+
+        .feature-card, .step-card, .cta-card {
+            padding: 1.5rem;
+        }
+
+        .stats-card {
+            padding: 2rem 1rem;
+        }
+    }
+
+    .py-6 {
+        padding-top: 6rem;
+        padding-bottom: 6rem;
+    }
+
+    .mb-6 {
+        margin-bottom: 6rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Scroll animations
+        $(document).ready(function() {
+            // Initialize animations
+            initAnimations();
+
+            // Start chat simulation
+            simulateChat();
+
+            // Start counter animations
+            startCounters();
+        });
+
+        function initAnimations() {
+            $(window).scroll(function() {
+                $('.animate-on-scroll').each(function() {
+                    var elementTop = $(this).offset().top;
+                    var elementBottom = elementTop + $(this).outerHeight();
+                    var viewportTop = $(window).scrollTop();
+                    var viewportBottom = viewportTop + $(window).height();
+
+                    if (elementBottom > viewportTop && elementTop < viewportBottom - 100) {
+                        var delay = $(this).data('delay') || 0;
+
+                        setTimeout(() => {
+                            $(this).addClass('animated');
+                        }, delay * 1000);
+                    }
+                });
+            });
+
+            // Trigger once on load
+            $(window).trigger('scroll');
+        }
+
+        function simulateChat() {
+            const chatBody = $('.chat-body');
+            const messages = [
+                { type: 'incoming', text: 'أود المساعدة في إعداد حسابي الجديد', time: '2:33 PM' },
+                { type: 'incoming', text: 'هل يمكنك مساعدتي في ذلك؟', time: '2:33 PM' },
+                { type: 'outgoing', text: 'بالتأكيد! دعني أرشدك خلال خطوات إعداد الحساب', time: '2:34 PM' }
+            ];
+
+            let index = 0;
+
+            function addMessage() {
+                if (index < messages.length) {
+                    const msg = messages[index];
+                    const messageHTML = `
+                        <div class="message ${msg.type}">
+                            <div class="message-content">
+                                <p>${msg.text}</p>
+                                <span class="message-time">${msg.time}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    chatBody.append(messageHTML);
+                    chatBody.scrollTop(chatBody[0].scrollHeight);
+
+                    index++;
+
+                    if (index < messages.length) {
+                        setTimeout(addMessage, 1500);
+                    }
+                }
+            }
+
+            // Start simulation after 2 seconds
+            setTimeout(addMessage, 2000);
+        }
+
+        function startCounters() {
+            $('.stat-number[data-count]').each(function() {
+                const $this = $(this);
+                const target = parseFloat($this.data('count'));
+                const suffix = $this.data('suffix') || '';
+                const duration = 2000;
+                const steps = 60;
+                const stepValue = target / steps;
+                let current = 0;
+                let step = 0;
+
+                const counter = setInterval(() => {
+                    current += stepValue;
+                    step++;
+
+                    if (step >= steps) {
+                        current = target;
+                        clearInterval(counter);
+                    }
+
+                    if ($this.data('count').toString().includes('.')) {
+                        $this.text(current.toFixed(1) + suffix);
+                    } else {
+                        $this.text(Math.floor(current) + suffix);
+                    }
+                }, duration / steps);
+            });
+        }
+
+        // Smooth scroll to features
+        $('a[href^="#features"]').click(function(e) {
+            e.preventDefault();
+            const target = $('#features');
+            if (target.length) {
+                $('html, body').animate({
+                    scrollTop: target.offset().top - 80
+                }, 1000);
+            }
+        });
+    </script>
+}

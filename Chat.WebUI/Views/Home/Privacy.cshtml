@@ -1,6 +1,302 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "سياسة الخصوصية";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <!-- عنوان الصفحة -->
+                    <div class="text-center mb-5">
+                        <h1 class="display-5 fw-bold text-primary mb-3">
+                            <i class="fas fa-shield-alt me-2"></i>سياسة الخصوصية
+                        </h1>
+                        <p class="lead text-muted">
+                            نحمي خصوصيتك ونضمن أمان بياناتك
+                        </p>
+                    </div>
+
+                    <!-- محتوى سياسة الخصوصية -->
+                    <div class="privacy-content">
+                        <!-- مقدمة -->
+                        <section class="mb-5">
+                            <h3 class="fw-bold mb-3 text-dark">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>مقدمة
+                            </h3>
+                            <p class="text-muted">
+                                نرحب بكم في نظام الدردشة المباشرة. نحن ندرك أهمية خصوصيتك ونلتزم بحماية بياناتك الشخصية.
+                                توضح سياسة الخصوصية هذه كيفية جمع واستخدام وحماية معلوماتك عند استخدام نظامنا.
+                            </p>
+                        </section>
+
+                        <!-- البيانات التي نجمعها -->
+                        <section class="mb-5">
+                            <h3 class="fw-bold mb-3 text-dark">
+                                <i class="fas fa-database me-2 text-primary"></i>البيانات التي نجمعها
+                            </h3>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-primary">
+                                                <i class="fas fa-user me-2"></i>البيانات الشخصية
+                                            </h5>
+                                            <ul class="list-unstyled text-muted">
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>الاسم الكامل</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>عنوان البريد الإلكتروني</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>رقم الهاتف (اختياري)</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>تاريخ التسجيل</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-primary">
+                                                <i class="fas fa-comments me-2"></i>بيانات المحادثة
+                                            </h5>
+                                            <ul class="list-unstyled text-muted">
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>نص المحادثات</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>تاريخ ووقت الرسائل</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>ملفات مرفقة (إن وجدت)</li>
+                                                <li><i class="fas fa-check-circle text-success me-2"></i>مدة الجلسة</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- كيفية استخدام البيانات -->
+                        <section class="mb-5">
+                            <h3 class="fw-bold mb-3 text-dark">
+                                <i class="fas fa-cogs me-2 text-primary"></i>كيفية استخدام البيانات
+                            </h3>
+                            <div class="accordion" id="privacyAccordion">
+                                <div class="accordion-item border-0 mb-2">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button rounded-3" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOne" aria-expanded="true">
+                                            <i class="fas fa-headset me-2 text-primary"></i>تقديم خدمة الدردشة
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse show"
+                                         data-bs-parent="#privacyAccordion">
+                                        <div class="accordion-body">
+                                            <p class="text-muted">
+                                                نستخدم بياناتك لتقديم خدمة الدردشة المباشرة، والرد على استفساراتك،
+                                                وحل المشكلات التي تواجهها.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item border-0 mb-2">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed rounded-3" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                            <i class="fas fa-chart-line me-2 text-primary"></i>تحسين الخدمة
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTwo" class="accordion-collapse collapse"
+                                         data-bs-parent="#privacyAccordion">
+                                        <div class="accordion-body">
+                                            <p class="text-muted">
+                                                نستخدم البيانات المجمعة لتحليل أداء النظام وتحسين تجربة المستخدم،
+                                                مما يساعدنا في تقديم خدمة أفضل.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item border-0">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed rounded-3" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                            <i class="fas fa-bell me-2 text-primary"></i>التواصل مع المستخدمين
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse"
+                                         data-bs-parent="#privacyAccordion">
+                                        <div class="accordion-body">
+                                            <p class="text-muted">
+                                                نستخدم بريدك الإلكتروني لإرسال إشعارات مهمة وتحديثات النظام،
+                                                وإعلامك بالتغيرات في سياساتنا.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- حماية البيانات -->
+                        <section class="mb-5">
+                            <h3 class="fw-bold mb-3 text-dark">
+                                <i class="fas fa-lock me-2 text-primary"></i>حماية البيانات
+                            </h3>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="security-icon mb-3">
+                                            <i class="fas fa-lock fa-3x text-primary"></i>
+                                        </div>
+                                        <h5 class="fw-bold">تشفير البيانات</h5>
+                                        <p class="text-muted small">جميع البيانات مشفرة باستخدام تقنيات التشفير المتقدمة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="security-icon mb-3">
+                                            <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                                        </div>
+                                        <h5 class="fw-bold">جدران الحماية</h5>
+                                        <p class="text-muted small">أنظمة حماية متعددة المستويات للحماية من التهديدات</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="security-icon mb-3">
+                                            <i class="fas fa-user-shield fa-3x text-primary"></i>
+                                        </div>
+                                        <h5 class="fw-bold">صلاحية الوصول</h5>
+                                        <p class="text-muted small">صلاحيات وصول محددة لضمان أمان البيانات</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- حقوق المستخدم -->
+                        <section class="mb-5">
+                            <h3 class="fw-bold mb-3 text-dark">
+                                <i class="fas fa-gavel me-2 text-primary"></i>حقوق المستخدم
+                            </h3>
+                            <div class="alert alert-primary border-0" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                                    <div>
+                                        <h5 class="alert-heading mb-1">أنت تتحكم في بياناتك</h5>
+                                        <p class="mb-0">لديك الحق في الوصول، التصحيح، الحذف، وتقييد معالجة بياناتك الشخصية</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-eye text-primary mt-1 me-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold">حق الوصول</h6>
+                                            <p class="text-muted small">يمكنك طلب نسخة من بياناتك الشخصية</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-edit text-primary mt-1 me-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold">حق التصحيح</h6>
+                                            <p class="text-muted small">يمكنك طلب تصحيح بياناتك غير الدقيقة</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-trash-alt text-primary mt-1 me-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold">حق الحذف</h6>
+                                            <p class="text-muted small">يمكنك طلب حذف بياناتك الشخصية</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-ban text-primary mt-1 me-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold">حق الاعتراض</h6>
+                                            <p class="text-muted small">يمكنك الاعتراض على معالجة بياناتك</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- الاتصال بنا -->
+                        <section class="text-center pt-4 border-top">
+                            <h4 class="fw-bold mb-4 text-dark">لديك استفسارات؟</h4>
+                            <p class="text-muted mb-4">
+                                إذا كان لديك أي أسئلة حول سياسة الخصوصية أو كيفية تعاملنا مع بياناتك،
+                                يرجى الاتصال بنا:
+                            </p>
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <a href="mailto:privacy@chat.com" class="btn btn-primary">
+                                    <i class="fas fa-envelope me-2"></i>privacy@chat.com
+                                </a>
+                                <a href="tel:+9661122334455" class="btn btn-outline-primary">
+                                    <i class="fas fa-phone me-2"></i>+966 11 2233 4455
+                                </a>
+                            </div>
+                            <p class="text-muted mt-4 small">
+                                آخر تحديث: @DateTime.Now.ToString("dd/MM/yyyy")
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <style>
+        .privacy-content {
+            line-height: 1.8;
+        }
+
+        .security-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .accordion-button {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            font-weight: 600;
+        }
+
+            .accordion-button:not(.collapsed) {
+                color: #667eea;
+                background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            }
+
+        .card {
+            transition: transform 0.3s;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+            }
+
+        /* تخصيص للأجهزة المحمولة */
+        @@media (max-width: 768px) {
+            .privacy-content h3 {
+                font-size: 1.5rem;
+            }
+
+            .security-icon {
+                width: 60px;
+                height: 60px;
+            }
+
+                .security-icon i {
+                    font-size: 2rem;
+                }
+        }
+    </style>
