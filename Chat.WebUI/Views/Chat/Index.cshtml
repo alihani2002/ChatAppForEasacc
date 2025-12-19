@@ -269,15 +269,6 @@
                                                         title="سجل المحادثات">
                                                     <i class="fas fa-history"></i>
                                                 </button>
-
-                                                @if (!session.IsClosed)
-                                                {
-                                                    <button class="btn btn-sm btn-outline-danger btn-action"
-                                                            onclick="closeSession('@session.Id')"
-                                                            title="إنهاء المحادثة">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                }
                                             </div>
                                         </td>
                                     </tr>

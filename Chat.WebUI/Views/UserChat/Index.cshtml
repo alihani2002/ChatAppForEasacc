@@ -79,46 +79,51 @@
 
 <style>
     .chat-container {
-        max-width: 900px;
-        margin: 2rem auto;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        max-width: 500px; /* أصغر عرض */
+        margin: 1rem auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         overflow: hidden;
         background: white;
+        height: 85vh; /* ارتفاع مناسب */
+        max-height: 700px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        flex-shrink: 0;
+        padding: 12px 15px !important;
+        background: linear-gradient(135deg, #0069d9, #0056b3) !important;
     }
 
     .chat-messages {
-        height: 500px;
+        flex: 1;
+        height: auto;
+        min-height: 0;
         overflow-y: auto;
-        background: #f8f9fa;
+        background: #f0f2f5;
+        padding: 10px 15px !important;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 20px !important;
+        gap: 8px;
     }
 
     /* رسائل المرسل */
     .message-sent {
         align-self: flex-end;
-        background: linear-gradient(135deg, #007bff, #0056b3);
+        background: linear-gradient(135deg, #0084ff, #0073e6);
         color: white;
         border-radius: 18px 18px 4px 18px;
-        padding: 12px 16px;
-        max-width: 75%;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        word-break: break-word;
-        white-space: pre-wrap;
+        padding: 8px 12px;
+        max-width: 80%;
+        min-width: 50px;
+        margin: 2px 0;
+        animation: slideInRight 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+        line-height: 1.4;
     }
-
-        .message-sent .message-time {
-            color: rgba(255,255,255,0.8);
-            text-align: left;
-            margin-top: 8px;
-            font-size: 0.7rem;
-        }
 
     /* رسائل المستقبل */
     .message-received {
@@ -126,228 +131,191 @@
         background: white;
         color: #333;
         border-radius: 18px 18px 18px 4px;
-        padding: 12px 16px;
-        max-width: 75%;
-        animation: slideInLeft 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        border: 1px solid #e9ecef;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        word-break: break-word;
-        white-space: pre-wrap;
+        padding: 8px 12px;
+        max-width: 80%;
+        min-width: 50px;
+        margin: 2px 0;
+        animation: slideInLeft 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        border: 1px solid #e6e6e6;
+        font-size: 0.9rem;
+        line-height: 1.4;
     }
 
         .message-received .message-sender {
-            font-weight: bold;
-            color: #007bff;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
+            font-weight: 600;
+            color: #385898;
+            font-size: 0.75rem;
+            margin-bottom: 3px;
         }
 
-        .message-received .message-time {
-            color: #6c757d;
-            text-align: right;
-            margin-top: 8px;
-            font-size: 0.7rem;
-        }
+    /* وقت الرسالة */
+    .message-time {
+        font-size: 0.65rem;
+        opacity: 0.8;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .message-sent .message-time {
+        color: rgba(255,255,255,0.85);
+    }
+
+    .message-received .message-time {
+        color: #65676b;
+    }
 
     /* الرسائل النظامية */
     .message-system {
         align-self: center;
-        background: #e9ecef;
-        color: #6c757d;
-        border-radius: 20px;
-        padding: 8px 20px;
-        font-size: 0.85rem;
-        max-width: 90%;
+        background: rgba(0,0,0,0.04);
+        color: #65676b;
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        margin: 5px 0;
         text-align: center;
-        margin: 10px 0;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-
-    /* وقت الرسالة */
-    .message-time {
-        display: block;
-        opacity: 0.9;
-    }
-
-    /* محتوى الرسالة */
-    .message-content {
-        line-height: 1.5;
-        font-size: 0.95rem;
     }
 
     /* منطقة الكتابة */
     .chat-input {
+        flex-shrink: 0;
+        padding: 10px 12px !important;
         background: white;
+        border-top: 1px solid #e4e6eb;
     }
 
     #msgInput {
-        border-radius: 25px 0 0 25px;
-        border: 2px solid #e9ecef;
-        padding: 12px 20px;
-        transition: all 0.3s;
+        border-radius: 20px;
+        border: 1px solid #dddfe2;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        background: #f0f2f5;
     }
 
         #msgInput:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.25rem rgba(0,123,255,0.25);
-        }
-
-        #msgInput.warning {
-            border-color: #ffc107;
-            box-shadow: 0 0 0 0.25rem rgba(255,193,7,0.25);
-        }
-
-        #msgInput.danger {
-            border-color: #dc3545;
-            box-shadow: 0 0 0 0.25rem rgba(220,53,69,0.25);
+            border-color: #0084ff;
+            box-shadow: 0 0 0 2px rgba(0,132,255,0.2);
+            background: white;
         }
 
     #btnSend {
-        border-radius: 0 25px 25px 0;
-        padding: 12px 25px;
+        border-radius: 20px;
+        margin-left: 8px;
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #0084ff, #0073e6);
+        border: none;
     }
+
+        #btnSend:hover {
+            background: linear-gradient(135deg, #0073e6, #0062cc);
+        }
 
     /* عداد الأحرف */
     #charCount {
+        font-size: 0.75rem;
         font-weight: 500;
-        transition: color 0.3s;
     }
-
-        #charCount.warning {
-            color: #ffc107;
-        }
-
-        #charCount.danger {
-            color: #dc3545;
-        }
 
     /* مؤشر الكتابة */
     #typingIndicator {
-        animation: pulse 1.5s infinite;
+        font-size: 0.75rem;
+        background: #f0f2f5;
+        padding: 5px 10px;
+        border-radius: 15px;
+        margin: 5px 0;
+        align-self: flex-start;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     /* الأنيميشن */
     @@keyframes slideInRight {
         from {
             opacity: 0;
-            transform: translateX(30px);
+            transform: translateX(20px) scale(0.95);
         }
 
         to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateX(0) scale(1);
         }
     }
 
     @@keyframes slideInLeft {
         from {
             opacity: 0;
-            transform: translateX(-30px);
+            transform: translateX(-20px) scale(0.95);
         }
 
         to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateX(0) scale(1);
         }
     }
 
-    @@keyframes pulse {
-        0%, 100% {
-            opacity: 1;
+    /* زر إنهاء المحادثة */
+    #btnEndChat {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+        #btnEndChat:hover {
+            background-color: rgba(255,255,255,0.15);
         }
 
-        50% {
-            opacity: 0.5;
+    /* التمرير */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+    }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
         }
-    }
 
-    /* مخصص لعرض حالة الاتصال */
-    #connectionStatus.connected {
-        color: #28a745;
-    }
-
-    #connectionStatus.disconnected {
-        color: #dc3545;
-    }
-
-    /* تصميم زر إنهاء المحادثة */
-    #btnEndChat:hover {
-        background-color: rgba(255,255,255,0.2);
+    /* تصميم للرسائل الطويلة */
+    .long-message {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 5px;
     }
 
     /* رسالة قيد الإرسال */
     .sending {
         opacity: 0.7;
-        border-right: 3px solid #ffc107 !important;
+        position: relative;
     }
 
-    /* رسالة تم إرسالها */
-    .sent-confirmed {
-        border-right: 3px solid #28a745 !important;
-    }
-
-    /* رسالة فشل إرسالها */
-    .send-failed {
-        border-right: 3px solid #dc3545 !important;
-        opacity: 0.8;
-    }
-
-    /* أيقونة التأكيد */
-    .fa-check-circle {
-        color: #28a745;
-        font-size: 0.7rem;
-        margin-left: 5px;
-    }
-
-    /* أيقونة التحذير */
-    .fa-exclamation-triangle {
-        color: #ffc107;
-        font-size: 0.7rem;
-        margin-left: 5px;
-    }
-
-    /* التمرير */
-    .chat-messages::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .chat-messages::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-
-    .chat-messages::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 10px;
-    }
-
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-    /* تصميم للرسائل الطويلة */
-    .long-message {
-        max-height: 300px;
-        overflow-y: auto;
-        padding-right: 5px;
-    }
-
-        .long-message::-webkit-scrollbar {
+        .sending::after {
+            content: '';
+            position: absolute;
+            right: 5px;
+            top: 50%;
             width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            animation: sendingDots 1.4s infinite;
         }
 
-        .long-message::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+    @@keyframes sendingDots {
+        0%, 100% {
+            opacity: 0.3;
         }
 
-        .long-message::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 2px;
+        50% {
+            opacity: 1;
         }
+    }
 
     /* تصميم للجوال */
     @@media (max-width: 768px) {
@@ -355,34 +323,39 @@
             margin: 0;
             border-radius: 0;
             height: 100vh;
+            max-height: none;
+            max-width: none;
         }
 
         .message-sent,
         .message-received {
             max-width: 85%;
-            min-width: 60%;
-        }
-
-        .message-content {
-            font-size: 0.9rem;
-        }
-
-        #charCount {
-            font-size: 0.8rem;
         }
     }
 
-    /* تحسين عرض النصوص العربية الطويلة */
+    /* تحسين عرض النصوص العربية */
     .message-content {
         text-align: right;
         direction: rtl;
-        unicode-bidi: embed;
+        word-break: break-word;
+        white-space: pre-wrap;
     }
 
-    /* تصميم متعدد الأسطر */
-    .multi-line-message {
-        white-space: pre-wrap;
-        overflow: visible;
+    /* أيقونة التأكيد */
+    .fa-check-circle {
+        margin-left: 5px;
+        font-size: 0.6rem;
+    }
+
+    /* إخفاء تحذير الأحرف */
+    #charLimitAlert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 90%;
+        max-width: 400px;
     }
 </style>
 
