@@ -994,7 +994,8 @@
                     data.fileName || data.FileName,
                     isMe,
                     data.time || data.Time,
-                    data.senderId || data.SenderId
+                    data.senderId || data.SenderId,
+                    data.messageId || data.MessageId
                 );
             });
 
@@ -1098,12 +1099,17 @@
             scrollToBottom();
         }
 
-        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId) {
+        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId, messageId = null) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
+            if (messageId && chatBox.querySelector(`.message[data-message-id="${messageId}"]`)) {
+                return;
+            }
+
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
+            if (messageId) messageDiv.setAttribute('data-message-id', messageId);
 
             const displayTime = time || new Date().toLocaleTimeString('ar-EG', {
                 hour: '2-digit',
@@ -1302,7 +1308,8 @@
                     data.fileName,
                     true,
                     data.time,
-                    currentUserId
+                    currentUserId,
+                    data.id
                 );
 
                 displaySystemMessage(`تم إرسال ${file.name} بنجاح`);
