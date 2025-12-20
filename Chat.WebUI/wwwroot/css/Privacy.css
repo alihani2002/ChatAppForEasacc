@@ -1,0 +1,50 @@
+﻿.privacy-content {
+    line-height: 1.8;
+}
+
+.security-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accordion-button {
+    background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    font-weight: 600;
+}
+
+    .accordion-button:not(.collapsed) {
+        color: #667eea;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    }
+
+.card {
+    transition: transform 0.3s;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+/* تخصيص للأجهزة المحمولة */
+@media (max-width: 768px) {
+    .privacy-content h3 {
+        font-size: 1.5rem;
+    }
+
+    .security-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+        .security-icon i {
+            font-size: 2rem;
+        }
+}
+
