@@ -220,7 +220,7 @@ public class ChatHub : Hub
                 foreach (var conn in connections)
                 {
                     await Clients.Client(conn).SendAsync("SessionTimeout",
-                        "تم إنهاء المحادثة لعدم النشاط");
+                        "The chat will be terminated because we have not received a response from you.");
                 }
 
                 // إغلاق الجلسة

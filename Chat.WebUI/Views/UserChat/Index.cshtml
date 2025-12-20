@@ -908,6 +908,8 @@
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    // Add this JavaScript section at the end of the user chat view, replacing the existing script section
+
     <script>
         // ==============================================
         // الثوابت والمتغيرات
@@ -918,12 +920,6 @@
             Video: 2,
             Document: 3,
             Voice: 4
-        };
-
-        const MessageStatus = {
-            Sent: 1,
-            Delivered: 2,
-            Seen: 3
         };
 
         const currentChatId = "@Model.Id";
@@ -949,14 +945,7 @@
         let connection = null;
         let typingTimeout = null;
         let isTyping = false;
-        let currentTypingUsers = new Set();
         let uploadedFiles = [];
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let recordedAudio = null;
-        let recordTimer = null;
-        let recordSeconds = 0;
-        let messageQueue = new Map();
 
         // ==============================================
         // دوال الاتصال
@@ -991,45 +980,40 @@
 
         function setupSignalREvents() {
             // استقبال الرسائل النصية
-            connection.on("ReceiveMessage", (senderId, message, time, messageId) => {
+            connection.on("ReceiveMessage", (senderId, message, time) => {
                 const isMe = senderId === currentUserId;
-                displayMessage(message, isMe, time, senderId, messageId);
-                hideTypingIndicator(senderId);
+                displayMessage(message, isMe, time, senderId);
             });
 
-            // استقبال رسائل الملفات
+            // استقبال رسائل الملفات - Handle both PascalCase and camelCase
             connection.on("ReceiveFileMessage", (data) => {
-                const isMe = data.senderId === currentUserId;
+                const isMe = (data.senderId || data.SenderId) === currentUserId;
                 displayFileMessage(
-                    data.fileUrl,
-                    data.messageType,
-                    data.fileName,
+                    data.fileUrl || data.FileUrl,
+                    data.messageType || data.MessageType,
+                    data.fileName || data.FileName,
                     isMe,
-                    data.time,
-                    data.senderId,
-                    data.messageId
+                    data.time || data.Time,
+                    data.senderId || data.SenderId
                 );
-                hideTypingIndicator(data.senderId);
             });
 
             // مؤشرات الكتابة
             connection.on("UserStartedTyping", (chatId, userId) => {
                 if (chatId === currentChatId && userId !== currentUserId) {
-                    currentTypingUsers.add(userId);
-                    updateTypingIndicator();
+                    showTypingIndicator(userId);
                 }
             });
 
             connection.on("UserStoppedTyping", (chatId, userId) => {
                 if (chatId === currentChatId) {
-                    currentTypingUsers.delete(userId);
-                    updateTypingIndicator();
+                    hideTypingIndicator();
                 }
             });
 
             // تحديث حالة الرسالة
             connection.on("MessageStatusUpdated", (messageId, status) => {
-                updateMessageStatusDisplay(messageId, status);
+                // Handle message status updates if needed
             });
 
             // أحداث النظام
@@ -1071,7 +1055,7 @@
 
         function joinChat() {
             if (connection && connection.state === 'Connected') {
-                connection.invoke("JoinChat", currentChatId)
+                connection.invoke("JoinChat", currentChatId.toString())
                     .then(() => console.log("✅ انضم للدردشة"))
                     .catch(err => console.error("❌ فشل الانضمام:", err));
             }
@@ -1080,7 +1064,7 @@
         // ==============================================
         // دوال العرض
         // ==============================================
-        function displayMessage(message, isSent, time = null, senderId = null, messageId = null) {
+        function displayMessage(message, isSent, time = null, senderId = null) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
@@ -1089,10 +1073,6 @@
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
-
-            if (messageId) {
-                messageDiv.setAttribute('data-message-id', messageId);
-            }
 
             const now = new Date();
             const displayTime = time || now.toLocaleTimeString('ar-EG', {
@@ -1103,7 +1083,7 @@
             if (isSent) {
                 messageDiv.innerHTML = `
                     <div class="message-content">${escapeHtml(message)}</div>
-                    <span class="message-time">${displayTime} <span class="status-indicator" data-status="${MessageStatus.Sent}">⬤</span></span>
+                    <span class="message-time">${displayTime}</span>
                 `;
             } else {
                 const senderName = 'الدعم الفني';
@@ -1118,16 +1098,12 @@
             scrollToBottom();
         }
 
-        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId, messageId = null) {
+        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId) {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
-
-            if (messageId) {
-                messageDiv.setAttribute('data-message-id', messageId);
-            }
 
             const displayTime = time || new Date().toLocaleTimeString('ar-EG', {
                 hour: '2-digit',
@@ -1137,20 +1113,25 @@
             let content = '';
             const displayFileName = fileName || "ملف";
 
-            switch (messageType) {
+            // Convert to number if it's a string
+            const msgType = typeof messageType === 'string' ? parseInt(messageType) : messageType;
+
+            switch (msgType) {
                 case MessageType.Image:
+                case 1:
                     content = `
                         <div class="message-content">
                             <img src="${fileUrl}" alt="${escapeHtml(displayFileName)}" class="chat-image"
-                                 onclick="openMediaModal('${fileUrl}', 'image')" />
+                                 onclick="window.open('${fileUrl}', '_blank')" />
                         </div>
                     `;
                     break;
 
                 case MessageType.Video:
+                case 2:
                     content = `
                         <div class="message-content">
-                            <video controls class="chat-video" onclick="openMediaModal('${fileUrl}', 'video')">
+                            <video controls class="chat-video">
                                 <source src="${fileUrl}" type="video/mp4">
                                 ${escapeHtml(displayFileName)}
                             </video>
@@ -1159,6 +1140,7 @@
                     break;
 
                 case MessageType.Voice:
+                case 4:
                     content = `
                         <div class="message-content">
                             <audio controls class="chat-audio">
@@ -1170,6 +1152,7 @@
                     break;
 
                 case MessageType.Document:
+                case 3:
                 default:
                     content = `
                         <div class="message-content">
@@ -1185,7 +1168,7 @@
             if (isSent) {
                 messageDiv.innerHTML = `
                     ${content}
-                    <span class="message-time">${displayTime} <span class="status-indicator" data-status="${MessageStatus.Sent}">⬤</span></span>
+                    <span class="message-time">${displayTime}</span>
                 `;
             } else {
                 const senderName = 'الدعم الفني';
@@ -1245,22 +1228,24 @@
 
         function sendTextMessage(message) {
             if (connection && connection.state === 'Connected') {
-                const tempId = 'temp_' + Date.now();
-                displayMessage(message, true, null, currentUserId, tempId);
+                displayMessage(message, true, null, currentUserId);
 
-                connection.invoke("SendMessage", currentChatId, message)
+                connection.invoke("SendMessage", currentChatId.toString(), message)
                     .then(() => {
-                        const tempMsg = document.querySelector(`[data-message-id="${tempId}"]`);
-                        if (tempMsg) tempMsg.remove();
+                        console.log('✅ تم إرسال الرسالة');
                     })
                     .catch(err => {
                         console.error("❌ فشل إرسال الرسالة:", err);
-                        queueMessage(currentChatId, message, 'text');
-                        displaySystemMessage('فشل إرسال الرسالة، سيتم إعادة المحاولة...');
+                        displaySystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
+
+                        setTimeout(() => {
+                            if (connection && connection.state === 'Connected') {
+                                connection.invoke("SendMessage", currentChatId.toString(), message);
+                            }
+                        }, 3000);
                     });
             } else {
-                queueMessage(currentChatId, message, 'text');
-                displaySystemMessage('الاتصال غير متوفر، سيتم إرسال الرسالة عند استعادة الاتصال...');
+                displaySystemMessage('الاتصال غير متوفر، يرجى الانتظار...');
             }
         }
 
@@ -1281,30 +1266,60 @@
             formData.append("messageType", messageType);
 
             try {
+                displaySystemMessage(`جاري رفع ${file.name}...`);
+
                 const response = await fetch(`/UserChat/${currentChatId}/upload`, {
                     method: 'POST',
                     body: formData
                 });
 
                 if (!response.ok) {
-                    throw new Error('فشل رفع الملف');
+                    const errorData = await response.json().catch(() => ({ error: 'فشل رفع الملف' }));
+                    throw new Error(errorData.error || `خطأ في الرفع: ${response.status}`);
                 }
 
                 const data = await response.json();
-                displaySystemMessage(`تم إرسال ${file.name}`);
+                
+                // Broadcast file message via SignalR
+                if (connection && connection.state === 'Connected') {
+                    await connection.invoke("BroadcastFileMessage",
+                        currentChatId.toString(),
+                        {
+                            MessageId: data.id,
+                            FileUrl: data.fileUrl,
+                            MessageType: data.messageType,
+                            FileName: data.fileName,
+                            Time: data.time,
+                            SenderId: data.senderId
+                        }
+                    );
+                }
+
+                // Display locally as fallback
+                displayFileMessage(
+                    data.fileUrl,
+                    data.messageType,
+                    data.fileName,
+                    true,
+                    data.time,
+                    currentUserId
+                );
+
+                displaySystemMessage(`تم إرسال ${file.name} بنجاح`);
                 return data;
 
             } catch (error) {
                 console.error('❌ فشل رفع الملف:', error);
-                queueMessage(currentChatId, file, 'file');
-                displaySystemMessage(`فشل إرسال ${file.name}، سيتم إعادة المحاولة...`);
+                const errorMsg = `فشل إرسال ${file.name}: ${error.message}`;
+                displaySystemMessage(errorMsg);
+                alert(errorMsg);
                 return null;
             }
         }
 
         async function uploadFiles() {
-            for (const file of uploadedFiles) {
-                await uploadFile(file.file);
+            for (const fileData of uploadedFiles) {
+                await uploadFile(fileData.file);
             }
         }
 
@@ -1317,55 +1332,37 @@
 
             if (statusElement && statusDot) {
                 statusElement.textContent = text;
-                statusDot.className = 'status-dot';
-
-                switch(status) {
-                    case 'connected':
-                        statusDot.style.background = '#4cd964';
-                        break;
-                    case 'connecting':
-                        statusDot.style.background = '#fdcb6e';
-                        statusDot.style.animation = 'blink 1s infinite';
-                        break;
-                    case 'disconnected':
-                        statusDot.style.background = '#d63031';
-                        break;
-                }
+                statusElement.className = status;
+                statusDot.className = 'status-dot ' + status;
             }
         }
 
-        function updateTypingIndicator() {
+        function showTypingIndicator(userId) {
             const indicator = document.getElementById('typingIndicator');
             const typingText = indicator?.querySelector('.typing-text');
 
-            if (currentTypingUsers.size > 0 && indicator && typingText) {
-                const users = Array.from(currentTypingUsers);
-                const text = users.length === 1 ? 'الدعم يكتب...' : 'الدعم يكتبون...';
-
-                typingText.textContent = text;
+            if (indicator && typingText) {
+                typingText.textContent = 'الدعم يكتب...';
                 indicator.style.display = 'flex';
-            } else if (indicator) {
-                indicator.style.display = 'none';
+
+                // إخفاء بعد 3 ثواني
+                setTimeout(() => {
+                    hideTypingIndicator();
+                }, 3000);
             }
         }
 
-        function hideTypingIndicator(userId) {
-            if (userId) {
-                currentTypingUsers.delete(userId);
-            }
-
-            if (currentTypingUsers.size === 0) {
-                const indicator = document.getElementById('typingIndicator');
-                if (indicator) {
-                    indicator.style.display = 'none';
-                }
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
             }
         }
 
         function startTyping() {
             if (!isTyping && connection && connection.state === 'Connected') {
                 isTyping = true;
-                connection.invoke("StartTyping", currentChatId)
+                connection.invoke("StartTyping", currentChatId.toString())
                     .catch(err => console.error("❌ فشل إرسال مؤشر الكتابة:", err));
             }
 
@@ -1376,7 +1373,7 @@
         function stopTyping() {
             if (isTyping && connection && connection.state === 'Connected') {
                 isTyping = false;
-                connection.invoke("StopTyping", currentChatId)
+                connection.invoke("StopTyping", currentChatId.toString())
                     .catch(err => console.error("❌ فشل إيقاف مؤشر الكتابة:", err));
             }
         }
@@ -1399,28 +1396,6 @@
             }
         }
 
-        function updateMessageStatusDisplay(messageId, status) {
-            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
-            if (messageElement) {
-                const statusIndicator = messageElement.querySelector('.status-indicator');
-                if (statusIndicator) {
-                    statusIndicator.setAttribute('data-status', status);
-
-                    switch(status) {
-                        case MessageStatus.Sent:
-                            statusIndicator.style.color = '#ccc';
-                            break;
-                        case MessageStatus.Delivered:
-                            statusIndicator.style.color = '#4cd964';
-                            break;
-                        case MessageStatus.Seen:
-                            statusIndicator.style.color = '#007aff';
-                            break;
-                    }
-                }
-            }
-        }
-
         function scrollToBottom() {
             const chatBox = document.getElementById('chatBox');
             if (!chatBox) return;
@@ -1434,12 +1409,6 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function openMediaModal(url, type) {
-            if (type === 'image' || type === 'video') {
-                window.open(url, '_blank');
-            }
         }
 
         // ==============================================
@@ -1510,148 +1479,6 @@
         }
 
         // ==============================================
-        // Voice Recording
-        // ==============================================
-        function openVoiceModal() {
-            const modal = document.getElementById('voiceRecordModal');
-            modal.style.display = 'flex';
-            initVoiceRecorder();
-        }
-
-        function closeVoiceModal() {
-            const modal = document.getElementById('voiceRecordModal');
-            modal.style.display = 'none';
-            stopRecording();
-            resetVoiceRecorder();
-        }
-
-        async function initVoiceRecorder() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    recordedAudio = new Audio(URL.createObjectURL(audioBlob));
-
-                    document.getElementById('btnPlayRecord').disabled = false;
-                    document.getElementById('btnSendVoice').disabled = false;
-                };
-
-                document.getElementById('btnStartRecord').disabled = false;
-            } catch (err) {
-                console.error("❌ خطأ في الوصول للميكروفون:", err);
-                alert('لا يمكن الوصول للميكروفون');
-                closeVoiceModal();
-            }
-        }
-
-        function startRecording() {
-            if (!mediaRecorder) return;
-
-            audioChunks = [];
-            mediaRecorder.start();
-
-            document.getElementById('btnStartRecord').disabled = true;
-            document.getElementById('btnStopRecord').disabled = false;
-            document.getElementById('btnPlayRecord').disabled = true;
-            document.getElementById('btnSendVoice').disabled = true;
-
-            recordSeconds = 0;
-            updateRecordTimer();
-            recordTimer = setInterval(updateRecordTimer, 1000);
-        }
-
-        function stopRecording() {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-
-            mediaRecorder.stop();
-
-            document.getElementById('btnStartRecord').disabled = false;
-            document.getElementById('btnStopRecord').disabled = true;
-
-            clearInterval(recordTimer);
-        }
-
-        function playRecording() {
-            if (!recordedAudio) return;
-
-            recordedAudio.currentTime = 0;
-            recordedAudio.play();
-        }
-
-        async function sendVoiceMessage() {
-            if (!recordedAudio || !audioChunks.length) return;
-
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const fileName = `voice_message_${Date.now()}.wav`;
-            const file = new File([audioBlob], fileName, { type: 'audio/wav' });
-
-            const result = await uploadFile(file);
-            if (result) {
-                closeVoiceModal();
-            }
-        }
-
-        function updateRecordTimer() {
-            recordSeconds++;
-            const minutes = Math.floor(recordSeconds / 60).toString().padStart(2, '0');
-            const seconds = (recordSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('recordTime').textContent = `${minutes}:${seconds}`;
-
-            if (recordSeconds >= 300) {
-                stopRecording();
-            }
-        }
-
-        function resetVoiceRecorder() {
-            if (recordedAudio) {
-                recordedAudio.pause();
-                recordedAudio = null;
-            }
-
-            audioChunks = [];
-            recordSeconds = 0;
-
-            document.getElementById('btnStartRecord').disabled = true;
-            document.getElementById('btnStopRecord').disabled = true;
-            document.getElementById('btnPlayRecord').disabled = true;
-            document.getElementById('btnSendVoice').disabled = true;
-            document.getElementById('recordTime').textContent = '00:00';
-
-            clearInterval(recordTimer);
-        }
-
-        // ==============================================
-        // Queue Management
-        // ==============================================
-        function queueMessage(chatId, content, type) {
-            const messageId = 'queued_' + Date.now();
-            messageQueue.set(messageId, {
-                chatId: chatId,
-                content: content,
-                type: type,
-                timestamp: new Date()
-            });
-            saveMessageQueue();
-            return messageId;
-        }
-
-        function saveMessageQueue() {
-            try {
-                const queueArray = Array.from(messageQueue.entries());
-                localStorage.setItem('chat_message_queue', JSON.stringify(queueArray));
-            } catch (e) {
-                console.error('❌ Failed to save message queue:', e);
-            }
-        }
-
-        // ==============================================
         // Event Listeners
         // ==============================================
         document.addEventListener('DOMContentLoaded', function() {
@@ -1671,7 +1498,6 @@
             const btnCamera = document.getElementById('btnCamera');
             const btnVoice = document.getElementById('btnVoice');
             const fileInput = document.getElementById('fileInput');
-            const voiceModal = document.getElementById('voiceRecordModal');
 
             if (input) {
                 input.addEventListener('input', function() {
@@ -1686,7 +1512,15 @@
                 input.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        sendMessage();
+                        if (uploadedFiles.length > 0) {
+                            uploadFiles().then(() => {
+                                if (this.value.trim()) {
+                                    sendMessage();
+                                }
+                            });
+                        } else {
+                            sendMessage();
+                        }
                     }
                 });
 
@@ -1694,67 +1528,67 @@
             }
 
             if (btnSend) btnSend.addEventListener('click', sendMessage);
-            if (btnEndChat) btnEndChat.addEventListener('click', endChat);
+            
+            if (btnEndChat) {
+                btnEndChat.addEventListener('click', function() {
+                    if (confirm('هل تريد إنهاء المحادثة؟')) {
+                        if (connection) {
+                            connection.invoke("LeaveChat", currentChatId.toString())
+                                .then(() => {
+                                    connection.stop();
+                                    window.location.href = '/';
+                                })
+                                .catch(err => console.error("❌ فشل إنهاء المحادثة:", err));
+                        } else {
+                            window.location.href = '/';
+                        }
+                    }
+                });
+            }
+            
             if (btnAttachment) btnAttachment.addEventListener('click', selectFiles);
-            if (btnImage) btnImage.addEventListener('click', () => {
-                fileInput.accept = 'image/*';
-                fileInput.click();
-                fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';
-            });
-            if (btnCamera) btnCamera.addEventListener('click', openCamera);
-            if (btnVoice) btnVoice.addEventListener('click', openVoiceModal);
+            
+            if (btnImage) {
+                btnImage.addEventListener('click', () => {
+                    fileInput.accept = 'image/*';
+                    fileInput.click();
+                    fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';
+                });
+            }
+            
+            if (btnCamera) {
+                btnCamera.addEventListener('click', function() {
+                    // For camera access, you'll need to use getUserMedia API
+                    // This is a basic implementation
+                    fileInput.accept = 'image/*;capture=camera';
+                    fileInput.click();
+                });
+            }
+            
+            if (btnVoice) {
+                btnVoice.addEventListener('click', function() {
+                    alert('تسجيل الصوت قيد التطوير');
+                    // You can implement voice recording here
+                });
+            }
 
             if (fileInput) {
                 fileInput.addEventListener('change', handleFileSelect);
             }
 
-            const btnStartRecord = document.getElementById('btnStartRecord');
-            const btnStopRecord = document.getElementById('btnStopRecord');
-            const btnPlayRecord = document.getElementById('btnPlayRecord');
-            const btnSendVoice = document.getElementById('btnSendVoice');
-            const btnCancelVoice = document.getElementById('btnCancelVoice');
-            const btnCloseModal = document.querySelector('.btn-close-modal');
-
-            if (btnStartRecord) btnStartRecord.addEventListener('click', startRecording);
-            if (btnStopRecord) btnStopRecord.addEventListener('click', stopRecording);
-            if (btnPlayRecord) btnPlayRecord.addEventListener('click', playRecording);
-            if (btnSendVoice) btnSendVoice.addEventListener('click', sendVoiceMessage);
-            if (btnCancelVoice) btnCancelVoice.addEventListener('click', closeVoiceModal);
-            if (btnCloseModal) btnCloseModal.addEventListener('click', closeVoiceModal);
-
-            if (voiceModal) {
-                voiceModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeVoiceModal();
-                    }
-                });
-            }
-
+            // Auto focus on input
             setTimeout(() => {
                 if (input) input.focus();
             }, 1000);
         });
 
-        function endChat() {
-            if (confirm('هل تريد إنهاء المحادثة؟')) {
-                if (connection) {
-                    connection.invoke("LeaveChat", currentChatId)
-                        .then(() => {
-                            connection.stop();
-                            window.location.href = '/';
-                        })
-                        .catch(err => console.error("❌ فشل إنهاء المحادثة:", err));
-                } else {
-                    window.location.href = '/';
-                }
-            }
-        }
-
+        // Clean up on page unload
         window.addEventListener('beforeunload', function() {
             if (connection && connection.state === 'Connected') {
-                connection.invoke("LeaveChat", currentChatId)
+                connection.invoke("LeaveChat", currentChatId.toString())
                     .catch(err => console.error("❌ فشل الخروج:", err));
             }
         });
     </script>
+}
 }

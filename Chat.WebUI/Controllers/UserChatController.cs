@@ -29,47 +29,66 @@ namespace Chat.WebUI.Controllers
             return View(session);
         }
 
-        [Authorize]
-        [HttpPost("{chatId}/upload")]
+        [HttpPost]
+        [Route("UserChat/{chatId}/upload")]
         public async Task<IActionResult> UploadFile(
             int chatId,
             IFormFile file,
-            MessageType messageType
-        )
+            MessageType messageType)
         {
-            var senderId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-            if (file == null || file.Length == 0)
-                return BadRequest("Invalid file");
-
-            var folder = messageType switch
+            try
             {
-                MessageType.Image => "images",
-                MessageType.Document => "documents",
-                MessageType.Video => "videos",
-                MessageType.Voice => "voices",
-                _ => "others"
-            };
+                var senderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(senderId))
+                {
+                    return Unauthorized(new { error = "User not authenticated" });
+                }
 
-            var fileUrl = await _fileService.UploadAsync(file, folder);
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { error = "Invalid file or file is empty" });
+                }
 
-            var message = await _chatService.SendFileMessageAsync(
-                chatId,
-                senderId,
-                fileUrl,
-                file.FileName,
-                messageType
-            );
+                // Validate file size (10MB limit)
+                const long maxFileSize = 10 * 1024 * 1024; // 10MB
+                if (file.Length > maxFileSize)
+                {
+                    return BadRequest(new { error = $"File size exceeds the maximum allowed size of {maxFileSize / (1024 * 1024)}MB" });
+                }
 
-            return Ok(new
+                var folder = messageType switch
+                {
+                    MessageType.Image => "images",
+                    MessageType.Document => "documents",
+                    MessageType.Video => "videos",
+                    MessageType.Voice => "voices",
+                    _ => "others"
+                };
+
+                var fileUrl = await _fileService.UploadAsync(file, folder);
+
+                var message = await _chatService.SendFileMessageAsync(
+                    chatId,
+                    senderId,
+                    fileUrl,
+                    file.FileName,
+                    messageType
+                );
+
+                return Ok(new
+                {
+                    id = message.Id,
+                    fileUrl = message.FileUrl,
+                    messageType = (int)message.MessageType,
+                    fileName = message.FileName,
+                    time = message.CreatedOn.ToString("HH:mm"),
+                    senderId = senderId
+                });
+            }
+            catch (Exception ex)
             {
-                message.Id,
-                message.FileUrl,
-                MessageType = (int)message.MessageType, // تحويل إلى int
-                message.FileName,
-                Time = message.CreatedOn.ToString("HH:mm"),
-                SenderId = senderId
-            });
+                return StatusCode(500, new { error = "An error occurred while uploading the file", details = ex.Message });
+            }
         }
     }
 }

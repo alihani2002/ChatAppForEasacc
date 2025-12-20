@@ -1,6 +1,15 @@
 ﻿// ~/js/chat.js
 "use strict";
 
+// MessageType enum
+const MessageType = {
+    Text: 0,
+    Image: 1,
+    Video: 2,
+    Document: 3,
+    Voice: 4
+};
+
 let connection = null;
 let currentChatId = null;
 let currentUserId = null;
@@ -38,13 +47,21 @@ function setupSignalREvents() {
         displayMessage(message, senderId === currentUserId, time, senderId);
     });
     connection.on("ReceiveFileMessage", (data) => {
+        // Handle both PascalCase (from hub) and camelCase (from views)
+        const fileUrl = data.fileUrl || data.FileUrl;
+        const messageType = data.messageType || data.MessageType;
+        const fileName = data.fileName || data.FileName;
+        const senderId = data.senderId || data.SenderId;
+        const time = data.time || data.Time;
+        const isMe = senderId === currentUserId;
+        
         displayFileMessage(
-            data.fileUrl,
-            data.messageType,
-            data.fileName,
-            data.senderId === currentUserId,
-            data.time,
-            data.senderId
+            fileUrl,
+            messageType,
+            fileName,
+            isMe,
+            time,
+            senderId
         );
     });
     // مؤشر الكتابة
@@ -78,7 +95,7 @@ function onConnected() {
     joinChatRoom();
 }
 
-function displayFileMessage(fileUrl, messageType, isMe, time, senderId) {
+function displayFileMessage(fileUrl, messageType, fileName, isMe, time, senderId) {
     const chatBox = document.getElementById("chatBox");
     if (!chatBox) return;
 
@@ -86,31 +103,42 @@ function displayFileMessage(fileUrl, messageType, isMe, time, senderId) {
     messageDiv.className = isMe ? "message-sent" : "message-received";
 
     let content = "";
+    const displayFileName = fileName || "ملف";
 
-    switch (messageType) {
+    // Convert to number if it's a string
+    const msgType = typeof messageType === 'string' ? parseInt(messageType) : messageType;
+
+    switch (msgType) {
         case MessageType.Image:
-            content = `<img src="${fileUrl}" class="chat-image" />`;
+        case 1:
+            content = `<img src="${fileUrl}" alt="${escapeHtml(displayFileName)}" class="chat-image" onclick="window.open('${fileUrl}', '_blank')" />`;
             break;
 
         case MessageType.Video:
+        case 2:
             content = `
                 <video controls class="chat-video">
                     <source src="${fileUrl}" type="video/mp4">
+                    ${escapeHtml(displayFileName)}
                 </video>`;
             break;
 
-        case MessageType.Audio:
+        case MessageType.Voice:
+        case 4:
             content = `
-                <audio controls>
+                <audio controls class="chat-audio">
                     <source src="${fileUrl}" type="audio/mpeg">
+                    ${escapeHtml(displayFileName)}
                 </audio>`;
             break;
 
         case MessageType.Document:
+        case 3:
         default:
             content = `
-                <a href="${fileUrl}" target="_blank" class="chat-file">
-                    📎 تحميل الملف
+                <a href="${fileUrl}" target="_blank" class="chat-file" download="${escapeHtml(displayFileName)}">
+                    <i class="fas fa-file-alt"></i>
+                    ${escapeHtml(displayFileName)}
                 </a>`;
             break;
     }
@@ -118,7 +146,7 @@ function displayFileMessage(fileUrl, messageType, isMe, time, senderId) {
     messageDiv.innerHTML = `
         ${!isMe ? `<div class="message-sender">الدعم</div>` : ""}
         <div class="message-content">${content}</div>
-        <span class="message-time">${time}</span>
+        <span class="message-time">${time || new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
     `;
 
     chatBox.appendChild(messageDiv);
@@ -277,27 +305,39 @@ async function uploadFile(chatId, file, messageType) {
     formData.append("file", file);
     formData.append("messageType", messageType);
 
-    const response = await fetch(`/${chatId}/upload`, {
-        method: "POST",
-        body: formData
-    });
+    try {
+        const response = await fetch(`/UserChat/${chatId}/upload`, {
+            method: "POST",
+            body: formData
+        });
 
-    if (!response.ok) {
-        displaySystemMessage("فشل رفع الملف");
-        return;
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'فشل رفع الملف' }));
+            throw new Error(errorData.error || `خطأ في الرفع: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Broadcast file message via SignalR
+        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+            await connection.invoke("BroadcastFileMessage",
+                chatId.toString(),
+                {
+                    MessageId: data.id,
+                    FileUrl: data.fileUrl,
+                    MessageType: data.messageType,
+                    FileName: data.fileName,
+                    Time: data.time,
+                    SenderId: data.senderId
+                }
+            );
+        }
+
+        displaySystemMessage(`تم إرسال ${file.name} بنجاح`);
+        return data;
+    } catch (error) {
+        console.error('❌ فشل رفع الملف:', error);
+        displaySystemMessage(`فشل إرسال ${file.name}: ${error.message}`);
+        return null;
     }
-
-    const data = await response.json();
-
-    // بث الرسالة عبر SignalR
-    await connection.invoke(
-        "BroadcastFileMessage",
-        chatId.toString(),
-        data.id,
-        data.fileUrl,
-        data.messageType,
-        data.fileName,
-        data.time,
-        data.senderId
-    );
 }

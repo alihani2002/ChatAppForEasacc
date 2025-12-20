@@ -78,23 +78,68 @@
             @foreach (var msg in Model.Messages)
             {
                 var isAdmin = msg.SenderId == adminId;
-                <div class="message-wrapper @(isAdmin ? "message-sent" : "message-received")" data-message-id="@msg.Id">
-                    <div class="message-content">
-                        <div class="message-text">@msg.Content</div>
-                        <div class="message-meta">
-                            <span class="message-time">@msg.CreatedOn.ToString("HH:mm")</span>
-                            @if (isAdmin)
-                            {
-                                <span class="message-status">
-                                    <i class="fas fa-check-circle"></i>
-                                </span>
-                            }
+                <div class="message-wrapper @(isAdmin ? "message-sent" : "message-received")" data-message-id="@msg.Id" data-message-type="@((int)msg.MessageType)">
+                    @if (msg.MessageType == Chat.Core.Enums.MessageType.Text)
+                    {
+                        <div class="message-content">
+                            <div class="message-text">@(msg.Content ?? "")</div>
+                            <div class="message-meta">
+                                <span class="message-time">@msg.CreatedOn.ToString("HH:mm")</span>
+                                @if (isAdmin)
+                                {
+                                    <span class="message-status">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                }
+                            </div>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="message-content">
+                            @if (msg.MessageType == Chat.Core.Enums.MessageType.Image)
+                            {
+                                <img src="@msg.FileUrl" alt="@msg.FileName" class="chat-image" onclick="window.open('@msg.FileUrl', '_blank')" />
+                            }
+                            else if (msg.MessageType == Chat.Core.Enums.MessageType.Video)
+                            {
+                                <video controls class="chat-video">
+                                    <source src="@msg.FileUrl" type="video/mp4">
+                                    @msg.FileName
+                                </video>
+                            }
+                            else if (msg.MessageType == Chat.Core.Enums.MessageType.Voice)
+                            {
+                                <audio controls class="chat-audio">
+                                    <source src="@msg.FileUrl" type="audio/mpeg">
+                                    @msg.FileName
+                                </audio>
+                            }
+                            else
+                            {
+                                <a href="@msg.FileUrl" target="_blank" class="chat-file" download="@msg.FileName">
+                                    <i class="fas fa-file-alt"></i>
+                                    @msg.FileName
+                                </a>
+                            }
+                            <div class="message-meta">
+                                <span class="message-time">@msg.CreatedOn.ToString("HH:mm")</span>
+                                @if (isAdmin)
+                                {
+                                    <span class="message-status">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         }
     </div>
+
+    <!-- ملفات تم رفعها مسبقاً -->
+    <div id="uploadedFiles" class="uploaded-files-container"></div>
 
     <!-- منطقة الرد -->
     <div class="admin-chat-input">
@@ -107,11 +152,15 @@
                           maxlength="1000"
                           @(isClosed ? "disabled" : "")></textarea>
                 <div class="input-tools">
-                    <button type="button" class="tool-btn" title="إرفاق ملف" @(isClosed ? "disabled" : "")>
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt" style="display: none;">
+                    <button type="button" id="btnAttachment" class="tool-btn" title="إرفاق ملف" @(isClosed ? "disabled" : "")>
                         <i class="fas fa-paperclip"></i>
                     </button>
-                    <button type="button" class="tool-btn" title="إرسال رد سريع" @(isClosed ? "disabled" : "")>
-                        <i class="fas fa-bolt"></i>
+                    <button type="button" id="btnImage" class="tool-btn" title="صورة" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button type="button" id="btnVoice" class="tool-btn" title="تسجيل صوتي" @(isClosed ? "disabled" : "")>
+                        <i class="fas fa-microphone"></i>
                     </button>
                 </div>
             </div>
@@ -600,6 +649,90 @@
         color: var(--admin-gray);
     }
 
+    /* الملفات المرفوعة */
+    .uploaded-files-container {
+        padding: 10px 20px;
+        background: var(--admin-light);
+        border-bottom: 1px solid var(--admin-light);
+        display: none;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .uploaded-files-container:not([style*="display: none"]) {
+        display: block !important;
+    }
+
+    .uploaded-file {
+        display: inline-flex;
+        align-items: center;
+        background: var(--admin-card);
+        padding: 5px 10px;
+        margin: 2px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        border: 1px solid var(--admin-light);
+    }
+
+        .uploaded-file .file-name {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 5px;
+        }
+
+        .uploaded-file .remove-file {
+            color: var(--admin-danger);
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+    /* تعديلات للملفات في المحادثة */
+    .chat-image {
+        max-width: 250px;
+        max-height: 250px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+        .chat-image:hover {
+            transform: scale(1.05);
+        }
+
+    .chat-video {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 10px;
+        background: #000;
+    }
+
+    .chat-audio {
+        width: 250px;
+    }
+
+    .chat-file {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 15px;
+        background: var(--admin-card);
+        border-radius: 10px;
+        color: var(--admin-accent);
+        text-decoration: none;
+        border: 1px solid var(--admin-light);
+        transition: all 0.3s ease;
+    }
+
+        .chat-file:hover {
+            background: var(--admin-light);
+            text-decoration: none;
+        }
+
+        .chat-file i {
+            margin-left: 8px;
+        }
+
     /* الرسائل الجديدة */
     .message-wrapper.new-message {
         animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -712,12 +845,36 @@
         const currentUserId = "@adminId";
         const otherUserId = "@Model.UserId";
         const isChatClosed = @(isClosed ? "true" : "false");
+        const MessageType = {
+            Text: 0,
+            Image: 1,
+            Video: 2,
+            Document: 3,
+            Voice: 4
+        };
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TYPES = {
+            'image/jpeg': MessageType.Image,
+            'image/png': MessageType.Image,
+            'image/gif': MessageType.Image,
+            'image/webp': MessageType.Image,
+            'video/mp4': MessageType.Video,
+            'video/webm': MessageType.Video,
+            'audio/mpeg': MessageType.Voice,
+            'audio/wav': MessageType.Voice,
+            'audio/ogg': MessageType.Voice,
+            'application/pdf': MessageType.Document,
+            'application/msword': MessageType.Document,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': MessageType.Document,
+            'text/plain': MessageType.Document
+        };
         let connection = null;
         let typingTimeout = null;
         let isTyping = false;
         let sentMessageIds = new Set();
         let tempMessages = new Map();
         let currentTypingUsers = new Set();
+        let uploadedFiles = [];
 
         // جمع معرفات الرسائل الموجودة
         document.addEventListener('DOMContentLoaded', function() {
@@ -769,6 +926,21 @@
 
         // إعداد أحداث SignalR
         function setupSignalREvents() {
+            // استقبال رسائل الملفات
+            connection.on("ReceiveFileMessage", (data) => {
+                const isAdmin = (data.senderId || data.SenderId) === currentUserId;
+                displayFileMessage(
+                    data.fileUrl || data.FileUrl,
+                    data.messageType || data.MessageType,
+                    data.fileName || data.FileName,
+                    isAdmin,
+                    data.time || data.Time,
+                    data.senderId || data.SenderId,
+                    data.messageId || data.MessageId
+                );
+                hideTypingIndicator(data.senderId || data.SenderId);
+            });
+
             // استقبال الرسائل الجديدة
             connection.on("ReceiveMessage", (senderId, message, time, messageId = null) => {
                 const isAdmin = senderId === currentUserId;
@@ -1066,15 +1238,35 @@
             const input = document.getElementById('msgInput');
             const message = input.value.trim();
 
-            if (!message) return;
+            if (!message && uploadedFiles.length === 0) return;
             if (!connection || connection.state !== 'Connected') {
                 alert('الاتصال غير نشط. يرجى الانتظار...');
                 return;
             }
 
+            // إذا كان هناك ملفات مرفوعة، أرسلها أولاً
+            if (uploadedFiles.length > 0) {
+                uploadFiles().then(() => {
+                    if (message) {
+                        sendTextMessage(message);
+                    }
+                });
+            } else if (message) {
+                sendTextMessage(message);
+            }
+
             input.value = '';
-            addMessageToChat(message, true, null, currentUserId);
             stopTyping();
+        }
+
+        // إرسال رسالة نصية فقط
+        function sendTextMessage(message) {
+            if (!connection || connection.state !== 'Connected') {
+                alert('الاتصال غير نشط. يرجى الانتظار...');
+                return;
+            }
+
+            addMessageToChat(message, true, null, currentUserId);
 
             connection.invoke("SendMessage", currentChatId, message)
                 .then(() => {
@@ -1156,6 +1348,251 @@
             return div.innerHTML;
         }
 
+        // ==============================================
+        // File Upload Functions
+        // ==============================================
+        function selectFiles() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
+                if (file.size > MAX_FILE_SIZE) {
+                    alert(`الملف ${file.name} يتجاوز الحد المسموح (10MB)`);
+                    continue;
+                }
+
+                const messageType = ALLOWED_TYPES[file.type];
+                if (!messageType) {
+                    alert(`نوع الملف ${file.name} غير مدعوم`);
+                    continue;
+                }
+
+                uploadedFiles.push({
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+            }
+
+            updateFileDisplay();
+            event.target.value = '';
+        }
+
+        function updateFileDisplay() {
+            const container = document.getElementById('uploadedFiles');
+            if (!container) {
+                console.error('Container uploadedFiles not found');
+                return;
+            }
+
+            if (uploadedFiles.length === 0) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            // إظهار الحاوية
+            container.style.display = 'block';
+            container.innerHTML = '';
+
+            uploadedFiles.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'uploaded-file';
+                fileElement.innerHTML = `
+                    <span class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
+                    <span class="remove-file" onclick="removeFile(${index})" style="cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                container.appendChild(fileElement);
+            });
+
+            // التأكد من أن الحاوية مرئية
+            console.log('Files displayed:', uploadedFiles.length);
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileDisplay();
+        }
+
+        async function uploadFile(file) {
+            if (file.size > MAX_FILE_SIZE) {
+                const errorMsg = `الملف ${file.name} يتجاوز الحد المسموح (10MB)`;
+                alert(errorMsg);
+                addSystemMessage(errorMsg);
+                return null;
+            }
+
+            const messageType = ALLOWED_TYPES[file.type] || MessageType.Document;
+            if (!messageType && !ALLOWED_TYPES[file.type]) {
+                const errorMsg = `نوع الملف ${file.name} غير مدعوم`;
+                alert(errorMsg);
+                addSystemMessage(errorMsg);
+                return null;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("messageType", messageType);
+
+            try {
+                addSystemMessage(`جاري رفع ${file.name}...`);
+
+                const response = await fetch(`/Chat/${currentChatId}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'فشل رفع الملف' }));
+                    throw new Error(errorData.error || `خطأ في الرفع: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Broadcast file message via SignalR
+                if (connection && connection.state === 'Connected') {
+                    await connection.invoke("BroadcastFileMessage",
+                        currentChatId.toString(),
+                        {
+                            MessageId: data.id,
+                            FileUrl: data.fileUrl,
+                            MessageType: data.messageType,
+                            FileName: data.fileName,
+                            Time: data.time,
+                            SenderId: data.senderId
+                        }
+                    );
+                }
+
+                // Fallback: Display locally
+                displayFileMessage(
+                    data.fileUrl,
+                    data.messageType,
+                    data.fileName,
+                    true,
+                    data.time,
+                    currentUserId,
+                    data.id
+                );
+
+                addSystemMessage(`تم إرسال ${file.name} بنجاح`);
+                return data;
+
+            } catch (error) {
+                console.error('❌ فشل رفع الملف:', error);
+                const errorMsg = `فشل إرسال ${file.name}: ${error.message}`;
+                addSystemMessage(errorMsg);
+                alert(errorMsg);
+                return null;
+            }
+        }
+
+        async function uploadFiles() {
+            for (const file of uploadedFiles) {
+                await uploadFile(file.file);
+            }
+            uploadedFiles = [];
+            updateFileDisplay();
+        }
+
+        // ==============================================
+        // Receive File Messages
+        // ==============================================
+        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId, messageId = null) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            removeEmptyState();
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `message-wrapper ${isSent ? 'message-sent' : 'message-received'} new-message`;
+
+            if (messageId) {
+                messageWrapper.setAttribute('data-message-id', messageId);
+                sentMessageIds.add(parseInt(messageId));
+            }
+
+            const displayTime = time || new Date().toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let content = '';
+            const displayFileName = fileName || "ملف";
+
+            // Convert to number if it's a string
+            const msgType = typeof messageType === 'string' ? parseInt(messageType) : messageType;
+
+            switch (msgType) {
+                case MessageType.Image:
+                case 1:
+                    content = `
+                        <div class="message-content">
+                            <img src="${fileUrl}" alt="${escapeHtml(displayFileName)}" class="chat-image"
+                                 onclick="window.open('${fileUrl}', '_blank')" />
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Video:
+                case 2:
+                    content = `
+                        <div class="message-content">
+                            <video controls class="chat-video">
+                                <source src="${fileUrl}" type="video/mp4">
+                                ${escapeHtml(displayFileName)}
+                            </video>
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Voice:
+                case 4:
+                    content = `
+                        <div class="message-content">
+                            <audio controls class="chat-audio">
+                                <source src="${fileUrl}" type="audio/mpeg">
+                                ${escapeHtml(displayFileName)}
+                            </audio>
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Document:
+                case 3:
+                default:
+                    content = `
+                        <div class="message-content">
+                            <a href="${fileUrl}" target="_blank" class="chat-file" download="${escapeHtml(displayFileName)}">
+                                <i class="fas fa-file-alt"></i>
+                                ${escapeHtml(displayFileName)}
+                            </a>
+                        </div>
+                    `;
+                    break;
+            }
+
+            const statusIcon = isSent ?
+                '<span class="message-status"><i class="fas fa-check-circle"></i></span>' : '';
+
+            messageWrapper.innerHTML = `
+                ${content}
+                <div class="message-meta">
+                    <span class="message-time">${displayTime}</span>
+                    ${statusIcon}
+                </div>
+            `;
+
+            chatBox.appendChild(messageWrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             if (!currentUserId || currentUserId === '') {
@@ -1166,7 +1603,7 @@
 
             if (!currentChatId || currentChatId === '0') {
                 alert('خطأ: لم يتم تحديد محادثة');
-                window.location.href = '/Admin/Chat';
+                window.location.href = '/Chat';
                 return;
             }
 
@@ -1178,9 +1615,29 @@
             const btnSend = document.getElementById('btnSend');
             const btnCloseChat = document.getElementById('btnCloseChat');
             const msgInput = document.getElementById('msgInput');
+            const btnAttachment = document.getElementById('btnAttachment');
+            const btnImage = document.getElementById('btnImage');
+            const btnVoice = document.getElementById('btnVoice');
+            const fileInput = document.getElementById('fileInput');
 
             if (btnSend) btnSend.addEventListener('click', sendAdminMessage);
             if (btnCloseChat) btnCloseChat.addEventListener('click', closeChat);
+            if (btnAttachment) btnAttachment.addEventListener('click', selectFiles);
+            if (btnImage) btnImage.addEventListener('click', () => {
+                if (fileInput) {
+                    fileInput.accept = 'image/*';
+                    fileInput.click();
+                    fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';
+                }
+            });
+            if (btnVoice) btnVoice.addEventListener('click', () => {
+                if (fileInput) {
+                    fileInput.accept = 'audio/*';
+                    fileInput.click();
+                    fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';
+                }
+            });
+            if (fileInput) fileInput.addEventListener('change', handleFileSelect);
 
             if (msgInput && !isChatClosed) {
                 msgInput.addEventListener('input', function() {
@@ -1192,7 +1649,15 @@
                 msgInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        sendAdminMessage();
+                        if (uploadedFiles.length > 0) {
+                            uploadFiles().then(() => {
+                                if (this.value.trim()) {
+                                    sendAdminMessage();
+                                }
+                            });
+                        } else {
+                            sendAdminMessage();
+                        }
                     }
                 });
 

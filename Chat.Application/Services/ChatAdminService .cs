@@ -36,7 +36,10 @@ namespace Chat.Application.Services
                         Content = m.Content,
                         MessageType = m.MessageType,
                         Status = m.Status,
-                        CreatedOn = m.CreatedOn
+                        CreatedOn = m.CreatedOn,
+                        FileUrl = m.FileUrl,
+                        FileName = m.FileName,
+                        VoiceDurationSeconds = m.VoiceDurationSeconds
                     })
                     .ToList()
             }).ToList();
@@ -83,7 +86,10 @@ namespace Chat.Application.Services
                         Content = m.Content,
                         MessageType = m.MessageType,
                         Status = m.Status,
-                        CreatedOn = m.CreatedOn
+                        CreatedOn = m.CreatedOn,
+                        FileUrl = m.FileUrl,
+                        FileName = m.FileName,
+                        VoiceDurationSeconds = m.VoiceDurationSeconds
                     }).ToList(),
                 CreatedOn = DateTime.Now
             };
