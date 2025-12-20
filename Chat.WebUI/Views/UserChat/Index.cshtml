@@ -58,7 +58,31 @@
 
     <!-- منطقة الكتابة -->
     <div class="chat-input-area">
+        <!-- ملفات تم رفعها مسبقاً -->
+        <div id="uploadedFiles" class="uploaded-files-container"></div>
+
         <div class="input-container">
+            <!-- أزرار التحكم -->
+            <div class="input-controls">
+                <div class="file-buttons">
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt" style="display: none;">
+                    <button type="button" id="btnAttachment" class="btn-control" title="إرفاق ملف">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button type="button" id="btnImage" class="btn-control" title="صورة">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button type="button" id="btnCamera" class="btn-control" title="كاميرا">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                <div class="voice-control">
+                    <button type="button" id="btnVoice" class="btn-control voice-btn" title="تسجيل صوتي">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="input-wrapper">
                 <textarea id="msgInput"
                           class="message-input"
@@ -75,6 +99,42 @@
             <div class="input-footer">
                 <small id="charCount" class="char-count">0/500</small>
                 <small class="hint">اضغط Enter للإرسال، Shift+Enter للسطر الجديد</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- تسجيل الصوت -->
+    <div id="voiceRecordModal" class="modal-overlay">
+        <div class="modal-content voice-modal">
+            <div class="modal-header">
+                <h5>تسجيل رسالة صوتية</h5>
+                <button type="button" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="voice-recorder">
+                    <div class="voice-visualizer" id="voiceVisualizer"></div>
+                    <div class="voice-controls">
+                        <button id="btnStartRecord" class="btn-record">
+                            <i class="fas fa-microphone"></i>
+                            <span>بدء التسجيل</span>
+                        </button>
+                        <button id="btnStopRecord" class="btn-record stop" disabled>
+                            <i class="fas fa-stop"></i>
+                            <span>إيقاف</span>
+                        </button>
+                        <button id="btnPlayRecord" class="btn-record play" disabled>
+                            <i class="fas fa-play"></i>
+                            <span>استماع</span>
+                        </button>
+                    </div>
+                    <div class="voice-timer">
+                        <span id="recordTime">00:00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnSendVoice" class="btn-primary" disabled>إرسال</button>
+                <button id="btnCancelVoice" class="btn-secondary">إلغاء</button>
             </div>
         </div>
     </div>
@@ -360,12 +420,88 @@
         margin: 5px 0;
     }
 
+    /* الملفات المرفوعة */
+    .uploaded-files-container {
+        padding: 10px;
+        background: var(--gray-light);
+        border-bottom: 1px solid var(--gray-medium);
+        display: none;
+    }
+
+    .uploaded-file {
+        display: inline-flex;
+        align-items: center;
+        background: var(--white);
+        padding: 5px 10px;
+        margin: 2px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        border: 1px solid var(--gray-medium);
+    }
+
+        .uploaded-file .file-name {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 5px;
+        }
+
+        .uploaded-file .remove-file {
+            color: var(--danger-color);
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
     /* منطقة الكتابة */
     .chat-input-area {
         border-top: 1px solid var(--gray-medium);
         background: var(--white);
         padding: 15px;
     }
+
+    .input-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 0 5px;
+    }
+
+    .file-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-control {
+        background: transparent;
+        border: none;
+        color: var(--gray-dark);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+        .btn-control:hover {
+            background: var(--gray-light);
+            color: var(--primary-color);
+        }
+
+    .voice-btn {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+
+        .voice-btn:hover {
+            background: var(--primary-dark);
+            color: var(--white);
+        }
 
     .input-container {
         position: relative;
@@ -465,22 +601,207 @@
         opacity: 0.6;
     }
 
-    /* التمرير */
-    .chat-messages::-webkit-scrollbar {
-        width: 6px;
+    /* تعديلات للملفات في المحادثة */
+    .chat-image {
+        max-width: 250px;
+        max-height: 250px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
     }
 
-    .chat-messages::-webkit-scrollbar-track {
-        background: transparent;
+        .chat-image:hover {
+            transform: scale(1.05);
+        }
+
+    .chat-video {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 10px;
+        background: #000;
     }
 
-    .chat-messages::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 3px;
+    .chat-audio {
+        width: 250px;
     }
 
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.2);
+    .chat-file {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 15px;
+        background: var(--white);
+        border-radius: 10px;
+        color: var(--primary-color);
+        text-decoration: none;
+        border: 1px solid var(--gray-medium);
+        transition: all 0.3s ease;
+    }
+
+        .chat-file:hover {
+            background: var(--gray-light);
+            text-decoration: none;
+        }
+
+        .chat-file i {
+            margin-left: 8px;
+        }
+
+    /* مودال تسجيل الصوت */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: var(--white);
+        border-radius: var(--radius);
+        width: 90%;
+        max-width: 400px;
+        box-shadow: var(--shadow);
+    }
+
+    .voice-modal {
+        padding: 20px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--gray-medium);
+    }
+
+        .modal-header h5 {
+            margin: 0;
+            color: var(--primary-dark);
+        }
+
+    .btn-close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--gray-dark);
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .voice-recorder {
+        text-align: center;
+    }
+
+    .voice-visualizer {
+        height: 100px;
+        margin: 20px 0;
+        background: var(--gray-light);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .voice-controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .btn-record {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .btn-record i {
+            font-size: 1.2rem;
+        }
+
+        .btn-record:not(:disabled) {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+            .btn-record:not(:disabled):hover {
+                background: var(--primary-dark);
+            }
+
+        .btn-record:disabled {
+            background: var(--gray-medium);
+            color: var(--gray-dark);
+            cursor: not-allowed;
+        }
+
+        .btn-record.stop:not(:disabled) {
+            background: var(--danger-color);
+        }
+
+        .btn-record.play:not(:disabled) {
+            background: var(--success-color);
+        }
+
+    .voice-timer {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-dark);
+        margin: 10px 0;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--gray-medium);
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 8px 20px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-primary:disabled {
+            background: var(--gray-medium);
+            cursor: not-allowed;
+        }
+
+    .btn-secondary {
+        background: var(--gray-light);
+        color: var(--gray-dark);
+    }
+
+        .btn-secondary:hover {
+            background: var(--gray-medium);
         }
 
     /* حالات الاتصال */
@@ -521,7 +842,7 @@
             width: 16px;
             height: 16px;
             border: 2px solid rgba(0, 132, 255, 0.3);
-            border-top-color: var(--primary-color);
+            border-top-color = var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -538,6 +859,24 @@
         color: #4cd964;
         font-weight: bold;
     }
+
+    /* التمرير */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+    }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
 
     /* تصميم للجوال */
     @@media (max-width: 768px) {
@@ -556,22 +895,72 @@
         .chat-input-area {
             padding: 10px;
         }
+
+        .chat-image {
+            max-width: 200px;
+        }
+
+        .chat-video {
+            max-width: 250px;
+        }
     }
 </style>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
     <script>
-        // المتغيرات العامة
+        // ==============================================
+        // الثوابت والمتغيرات
+        // ==============================================
+        const MessageType = {
+            Text: 0,
+            Image: 1,
+            Video: 2,
+            Document: 3,
+            Voice: 4
+        };
+
+        const MessageStatus = {
+            Sent: 1,
+            Delivered: 2,
+            Seen: 3
+        };
+
         const currentChatId = "@Model.Id";
         const currentUserId = "@userId";
         const MAX_CHARS = 500;
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TYPES = {
+            'image/jpeg': MessageType.Image,
+            'image/png': MessageType.Image,
+            'image/gif': MessageType.Image,
+            'image/webp': MessageType.Image,
+            'video/mp4': MessageType.Video,
+            'video/webm': MessageType.Video,
+            'audio/mpeg': MessageType.Voice,
+            'audio/wav': MessageType.Voice,
+            'audio/ogg': MessageType.Voice,
+            'application/pdf': MessageType.Document,
+            'application/msword': MessageType.Document,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': MessageType.Document,
+            'text/plain': MessageType.Document
+        };
+
         let connection = null;
         let typingTimeout = null;
         let isTyping = false;
         let currentTypingUsers = new Set();
+        let uploadedFiles = [];
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordedAudio = null;
+        let recordTimer = null;
+        let recordSeconds = 0;
+        let messageQueue = new Map();
 
-        // تهيئة الاتصال
+        // ==============================================
+        // دوال الاتصال
+        // ==============================================
         function initializeConnection() {
             connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chatHub")
@@ -585,10 +974,8 @@
                 .configureLogging(signalR.LogLevel.Warning)
                 .build();
 
-            // أحداث SignalR
             setupSignalREvents();
 
-            // بدء الاتصال
             connection.start()
                 .then(() => {
                     console.log("✅ متصل بـ SignalR");
@@ -602,16 +989,30 @@
                 });
         }
 
-        // إعداد الأحداث
         function setupSignalREvents() {
-            // استقبال الرسائل
+            // استقبال الرسائل النصية
             connection.on("ReceiveMessage", (senderId, message, time, messageId) => {
                 const isMe = senderId === currentUserId;
                 displayMessage(message, isMe, time, senderId, messageId);
                 hideTypingIndicator(senderId);
             });
 
-            // مؤشر بدء الكتابة
+            // استقبال رسائل الملفات
+            connection.on("ReceiveFileMessage", (data) => {
+                const isMe = data.senderId === currentUserId;
+                displayFileMessage(
+                    data.fileUrl,
+                    data.messageType,
+                    data.fileName,
+                    isMe,
+                    data.time,
+                    data.senderId,
+                    data.messageId
+                );
+                hideTypingIndicator(data.senderId);
+            });
+
+            // مؤشرات الكتابة
             connection.on("UserStartedTyping", (chatId, userId) => {
                 if (chatId === currentChatId && userId !== currentUserId) {
                     currentTypingUsers.add(userId);
@@ -619,7 +1020,6 @@
                 }
             });
 
-            // مؤشر إيقاف الكتابة
             connection.on("UserStoppedTyping", (chatId, userId) => {
                 if (chatId === currentChatId) {
                     currentTypingUsers.delete(userId);
@@ -627,18 +1027,31 @@
                 }
             });
 
-            // دخول المستخدم
+            // تحديث حالة الرسالة
+            connection.on("MessageStatusUpdated", (messageId, status) => {
+                updateMessageStatusDisplay(messageId, status);
+            });
+
+            // أحداث النظام
             connection.on("UserJoined", (userId) => {
                 if (userId !== currentUserId) {
                     displaySystemMessage('انضم ممثل الدعم إلى المحادثة');
                 }
             });
 
-            // خروج المستخدم
             connection.on("UserLeft", (userId) => {
                 if (userId !== currentUserId) {
                     displaySystemMessage('غادر ممثل الدعم المحادثة');
                 }
+            });
+
+            connection.on("SessionTimeout", (message) => {
+                displaySystemMessage(message);
+                setTimeout(() => {
+                    if (confirm("تم إنهاء المحادثة لعدم النشاط. هل تريد بدء محادثة جديدة؟")) {
+                        window.location.reload();
+                    }
+                }, 2000);
             });
 
             // أحداث الاتصال
@@ -656,7 +1069,6 @@
             });
         }
 
-        // الانضمام للدردشة
         function joinChat() {
             if (connection && connection.state === 'Connected') {
                 connection.invoke("JoinChat", currentChatId)
@@ -665,7 +1077,240 @@
             }
         }
 
-        // تحديث حالة الاتصال
+        // ==============================================
+        // دوال العرض
+        // ==============================================
+        function displayMessage(message, isSent, time = null, senderId = null, messageId = null) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            const welcomeMsg = chatBox.querySelector('.welcome-message');
+            if (welcomeMsg) welcomeMsg.remove();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
+
+            if (messageId) {
+                messageDiv.setAttribute('data-message-id', messageId);
+            }
+
+            const now = new Date();
+            const displayTime = time || now.toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            if (isSent) {
+                messageDiv.innerHTML = `
+                    <div class="message-content">${escapeHtml(message)}</div>
+                    <span class="message-time">${displayTime} <span class="status-indicator" data-status="${MessageStatus.Sent}">⬤</span></span>
+                `;
+            } else {
+                const senderName = 'الدعم الفني';
+                messageDiv.innerHTML = `
+                    <div class="message-sender">${senderName}</div>
+                    <div class="message-content">${escapeHtml(message)}</div>
+                    <span class="message-time">${displayTime}</span>
+                `;
+            }
+
+            chatBox.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function displayFileMessage(fileUrl, messageType, fileName, isSent, time, senderId, messageId = null) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
+
+            if (messageId) {
+                messageDiv.setAttribute('data-message-id', messageId);
+            }
+
+            const displayTime = time || new Date().toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let content = '';
+            const displayFileName = fileName || "ملف";
+
+            switch (messageType) {
+                case MessageType.Image:
+                    content = `
+                        <div class="message-content">
+                            <img src="${fileUrl}" alt="${escapeHtml(displayFileName)}" class="chat-image"
+                                 onclick="openMediaModal('${fileUrl}', 'image')" />
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Video:
+                    content = `
+                        <div class="message-content">
+                            <video controls class="chat-video" onclick="openMediaModal('${fileUrl}', 'video')">
+                                <source src="${fileUrl}" type="video/mp4">
+                                ${escapeHtml(displayFileName)}
+                            </video>
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Voice:
+                    content = `
+                        <div class="message-content">
+                            <audio controls class="chat-audio">
+                                <source src="${fileUrl}" type="audio/mpeg">
+                                ${escapeHtml(displayFileName)}
+                            </audio>
+                        </div>
+                    `;
+                    break;
+
+                case MessageType.Document:
+                default:
+                    content = `
+                        <div class="message-content">
+                            <a href="${fileUrl}" target="_blank" class="chat-file" download="${escapeHtml(displayFileName)}">
+                                <i class="fas fa-file-alt"></i>
+                                ${escapeHtml(displayFileName)}
+                            </a>
+                        </div>
+                    `;
+                    break;
+            }
+
+            if (isSent) {
+                messageDiv.innerHTML = `
+                    ${content}
+                    <span class="message-time">${displayTime} <span class="status-indicator" data-status="${MessageStatus.Sent}">⬤</span></span>
+                `;
+            } else {
+                const senderName = 'الدعم الفني';
+                messageDiv.innerHTML = `
+                    <div class="message-sender">${senderName}</div>
+                    ${content}
+                    <span class="message-time">${displayTime}</span>
+                `;
+            }
+
+            chatBox.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function displaySystemMessage(text) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-system';
+            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${escapeHtml(text)}`;
+
+            chatBox.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // ==============================================
+        // دوال إرسال الرسائل
+        // ==============================================
+        function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const message = input.value.trim();
+
+            if (!message && uploadedFiles.length === 0) return;
+
+            if (message.length > MAX_CHARS) {
+                alert(`الحد الأقصى ${MAX_CHARS} حرف`);
+                return;
+            }
+
+            if (uploadedFiles.length > 0) {
+                uploadFiles().then(() => {
+                    if (message) {
+                        sendTextMessage(message);
+                    }
+                });
+            } else if (message) {
+                sendTextMessage(message);
+            }
+
+            input.value = '';
+            uploadedFiles = [];
+            updateFileDisplay();
+            updateCharCount();
+            stopTyping();
+        }
+
+        function sendTextMessage(message) {
+            if (connection && connection.state === 'Connected') {
+                const tempId = 'temp_' + Date.now();
+                displayMessage(message, true, null, currentUserId, tempId);
+
+                connection.invoke("SendMessage", currentChatId, message)
+                    .then(() => {
+                        const tempMsg = document.querySelector(`[data-message-id="${tempId}"]`);
+                        if (tempMsg) tempMsg.remove();
+                    })
+                    .catch(err => {
+                        console.error("❌ فشل إرسال الرسالة:", err);
+                        queueMessage(currentChatId, message, 'text');
+                        displaySystemMessage('فشل إرسال الرسالة، سيتم إعادة المحاولة...');
+                    });
+            } else {
+                queueMessage(currentChatId, message, 'text');
+                displaySystemMessage('الاتصال غير متوفر، سيتم إرسال الرسالة عند استعادة الاتصال...');
+            }
+        }
+
+        async function uploadFile(file) {
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`الملف ${file.name} يتجاوز الحد المسموح (10MB)`);
+                return null;
+            }
+
+            const messageType = ALLOWED_TYPES[file.type] || MessageType.Document;
+            if (!messageType) {
+                alert(`نوع الملف ${file.name} غير مدعوم`);
+                return null;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("messageType", messageType);
+
+            try {
+                const response = await fetch(`/UserChat/${currentChatId}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('فشل رفع الملف');
+                }
+
+                const data = await response.json();
+                displaySystemMessage(`تم إرسال ${file.name}`);
+                return data;
+
+            } catch (error) {
+                console.error('❌ فشل رفع الملف:', error);
+                queueMessage(currentChatId, file, 'file');
+                displaySystemMessage(`فشل إرسال ${file.name}، سيتم إعادة المحاولة...`);
+                return null;
+            }
+        }
+
+        async function uploadFiles() {
+            for (const file of uploadedFiles) {
+                await uploadFile(file.file);
+            }
+        }
+
+        // ==============================================
+        // دوال مساعدة
+        // ==============================================
         function updateConnectionStatus(status, text) {
             const statusElement = document.getElementById('connectionStatus');
             const statusDot = document.getElementById('statusDot');
@@ -689,7 +1334,6 @@
             }
         }
 
-        // تحديث مؤشر الكتابة
         function updateTypingIndicator() {
             const indicator = document.getElementById('typingIndicator');
             const typingText = indicator?.querySelector('.typing-text');
@@ -705,13 +1349,19 @@
             }
         }
 
-        // إخفاء مؤشر الكتابة لمستخدم معين
         function hideTypingIndicator(userId) {
-            currentTypingUsers.delete(userId);
-            updateTypingIndicator();
+            if (userId) {
+                currentTypingUsers.delete(userId);
+            }
+
+            if (currentTypingUsers.size === 0) {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) {
+                    indicator.style.display = 'none';
+                }
+            }
         }
 
-        // بدء الكتابة
         function startTyping() {
             if (!isTyping && connection && connection.state === 'Connected') {
                 isTyping = true;
@@ -719,12 +1369,10 @@
                     .catch(err => console.error("❌ فشل إرسال مؤشر الكتابة:", err));
             }
 
-            // إعادة تعيين الوقت
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(stopTyping, 2000);
         }
 
-        // إيقاف الكتابة
         function stopTyping() {
             if (isTyping && connection && connection.state === 'Connected') {
                 isTyping = false;
@@ -733,93 +1381,6 @@
             }
         }
 
-        // عرض الرسالة
-        function displayMessage(message, isSent, time = null, senderId = null, messageId = null) {
-            const chatBox = document.getElementById('chatBox');
-            if (!chatBox) return;
-
-            // إزالة رسالة الترحيب إذا كانت موجودة
-            const welcomeMsg = chatBox.querySelector('.welcome-message');
-            if (welcomeMsg) welcomeMsg.remove();
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isSent ? 'message-sent' : 'message-received'}`;
-
-            if (messageId) {
-                messageDiv.setAttribute('data-message-id', messageId);
-            }
-
-            const now = new Date();
-            const displayTime = time || now.toLocaleTimeString('ar-EG', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            if (isSent) {
-                messageDiv.innerHTML = `
-                    <div class="message-content">${escapeHtml(message)}</div>
-                    <span class="message-time">${displayTime}</span>
-                `;
-            } else {
-                const senderName = 'الدعم الفني';
-                messageDiv.innerHTML = `
-                    <div class="message-sender">${senderName}</div>
-                    <div class="message-content">${escapeHtml(message)}</div>
-                    <span class="message-time">${displayTime}</span>
-                `;
-            }
-
-            chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // عرض رسالة نظامية
-        function displaySystemMessage(text) {
-            const chatBox = document.getElementById('chatBox');
-            if (!chatBox) return;
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-system';
-            messageDiv.innerHTML = `<i class="fas fa-info-circle me-1"></i> ${escapeHtml(text)}`;
-
-            chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // إرسال رسالة
-        function sendMessage() {
-            const input = document.getElementById('msgInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            // التحقق من الطول
-            if (message.length > MAX_CHARS) {
-                alert(`الحد الأقصى ${MAX_CHARS} حرف`);
-                return;
-            }
-
-            // إرسال عبر SignalR
-            if (connection && connection.state === 'Connected') {
-                connection.invoke("SendMessage", currentChatId, message)
-                    .then(() => {
-                        input.value = '';
-                        updateCharCount();
-                        stopTyping();
-                    })
-                    .catch(err => {
-                        console.error("❌ فشل إرسال الرسالة:", err);
-                        displaySystemMessage('فشل إرسال الرسالة، جاري إعادة المحاولة...');
-
-                        // محاولة إعادة الإرسال
-                        setTimeout(() => sendMessage(message), 3000);
-                    });
-            } else {
-                displaySystemMessage('الاتصال غير متوفر، جاري إعادة الاتصال...');
-            }
-        }
-
-        // تحديث عداد الأحرف
         function updateCharCount() {
             const input = document.getElementById('msgInput');
             const charCount = document.getElementById('charCount');
@@ -829,7 +1390,6 @@
             const length = input.value.length;
             charCount.textContent = `${length}/${MAX_CHARS}`;
 
-            // تحديث اللون
             charCount.className = 'char-count';
             if (length > MAX_CHARS * 0.8) {
                 charCount.classList.add('warning');
@@ -839,7 +1399,342 @@
             }
         }
 
-        // إنهاء المحادثة
+        function updateMessageStatusDisplay(messageId, status) {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                const statusIndicator = messageElement.querySelector('.status-indicator');
+                if (statusIndicator) {
+                    statusIndicator.setAttribute('data-status', status);
+
+                    switch(status) {
+                        case MessageStatus.Sent:
+                            statusIndicator.style.color = '#ccc';
+                            break;
+                        case MessageStatus.Delivered:
+                            statusIndicator.style.color = '#4cd964';
+                            break;
+                        case MessageStatus.Seen:
+                            statusIndicator.style.color = '#007aff';
+                            break;
+                    }
+                }
+            }
+        }
+
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            requestAnimationFrame(() => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function openMediaModal(url, type) {
+            if (type === 'image' || type === 'video') {
+                window.open(url, '_blank');
+            }
+        }
+
+        // ==============================================
+        // إدارة الملفات
+        // ==============================================
+        function selectFiles() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+
+            for (const file of files) {
+                if (file.size > MAX_FILE_SIZE) {
+                    alert(`الملف ${file.name} يتجاوز الحد المسموح (10MB)`);
+                    continue;
+                }
+
+                const messageType = ALLOWED_TYPES[file.type];
+                if (!messageType) {
+                    alert(`نوع الملف ${file.name} غير مدعوم`);
+                    continue;
+                }
+
+                uploadedFiles.push({
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+            }
+
+            updateFileDisplay();
+            event.target.value = '';
+        }
+
+        function updateFileDisplay() {
+            const container = document.getElementById('uploadedFiles');
+
+            if (!container) return;
+
+            if (uploadedFiles.length === 0) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            container.style.display = 'block';
+            container.innerHTML = '';
+
+            uploadedFiles.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'uploaded-file';
+                fileElement.innerHTML = `
+                    <span class="file-name" title="${file.name}">${file.name}</span>
+                    <span class="remove-file" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                container.appendChild(fileElement);
+            });
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileDisplay();
+        }
+
+        // ==============================================
+        // Voice Recording
+        // ==============================================
+        function openVoiceModal() {
+            const modal = document.getElementById('voiceRecordModal');
+            modal.style.display = 'flex';
+            initVoiceRecorder();
+        }
+
+        function closeVoiceModal() {
+            const modal = document.getElementById('voiceRecordModal');
+            modal.style.display = 'none';
+            stopRecording();
+            resetVoiceRecorder();
+        }
+
+        async function initVoiceRecorder() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    recordedAudio = new Audio(URL.createObjectURL(audioBlob));
+
+                    document.getElementById('btnPlayRecord').disabled = false;
+                    document.getElementById('btnSendVoice').disabled = false;
+                };
+
+                document.getElementById('btnStartRecord').disabled = false;
+            } catch (err) {
+                console.error("❌ خطأ في الوصول للميكروفون:", err);
+                alert('لا يمكن الوصول للميكروفون');
+                closeVoiceModal();
+            }
+        }
+
+        function startRecording() {
+            if (!mediaRecorder) return;
+
+            audioChunks = [];
+            mediaRecorder.start();
+
+            document.getElementById('btnStartRecord').disabled = true;
+            document.getElementById('btnStopRecord').disabled = false;
+            document.getElementById('btnPlayRecord').disabled = true;
+            document.getElementById('btnSendVoice').disabled = true;
+
+            recordSeconds = 0;
+            updateRecordTimer();
+            recordTimer = setInterval(updateRecordTimer, 1000);
+        }
+
+        function stopRecording() {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+
+            mediaRecorder.stop();
+
+            document.getElementById('btnStartRecord').disabled = false;
+            document.getElementById('btnStopRecord').disabled = true;
+
+            clearInterval(recordTimer);
+        }
+
+        function playRecording() {
+            if (!recordedAudio) return;
+
+            recordedAudio.currentTime = 0;
+            recordedAudio.play();
+        }
+
+        async function sendVoiceMessage() {
+            if (!recordedAudio || !audioChunks.length) return;
+
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const fileName = `voice_message_${Date.now()}.wav`;
+            const file = new File([audioBlob], fileName, { type: 'audio/wav' });
+
+            const result = await uploadFile(file);
+            if (result) {
+                closeVoiceModal();
+            }
+        }
+
+        function updateRecordTimer() {
+            recordSeconds++;
+            const minutes = Math.floor(recordSeconds / 60).toString().padStart(2, '0');
+            const seconds = (recordSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('recordTime').textContent = `${minutes}:${seconds}`;
+
+            if (recordSeconds >= 300) {
+                stopRecording();
+            }
+        }
+
+        function resetVoiceRecorder() {
+            if (recordedAudio) {
+                recordedAudio.pause();
+                recordedAudio = null;
+            }
+
+            audioChunks = [];
+            recordSeconds = 0;
+
+            document.getElementById('btnStartRecord').disabled = true;
+            document.getElementById('btnStopRecord').disabled = true;
+            document.getElementById('btnPlayRecord').disabled = true;
+            document.getElementById('btnSendVoice').disabled = true;
+            document.getElementById('recordTime').textContent = '00:00';
+
+            clearInterval(recordTimer);
+        }
+
+        // ==============================================
+        // Queue Management
+        // ==============================================
+        function queueMessage(chatId, content, type) {
+            const messageId = 'queued_' + Date.now();
+            messageQueue.set(messageId, {
+                chatId: chatId,
+                content: content,
+                type: type,
+                timestamp: new Date()
+            });
+            saveMessageQueue();
+            return messageId;
+        }
+
+        function saveMessageQueue() {
+            try {
+                const queueArray = Array.from(messageQueue.entries());
+                localStorage.setItem('chat_message_queue', JSON.stringify(queueArray));
+            } catch (e) {
+                console.error('❌ Failed to save message queue:', e);
+            }
+        }
+
+        // ==============================================
+        // Event Listeners
+        // ==============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!currentUserId || !currentChatId) {
+                alert('خطأ في البيانات، سيتم التوجيه إلى الصفحة الرئيسية');
+                window.location.href = '/';
+                return;
+            }
+
+            initializeConnection();
+
+            const input = document.getElementById('msgInput');
+            const btnSend = document.getElementById('btnSend');
+            const btnEndChat = document.getElementById('btnEndChat');
+            const btnAttachment = document.getElementById('btnAttachment');
+            const btnImage = document.getElementById('btnImage');
+            const btnCamera = document.getElementById('btnCamera');
+            const btnVoice = document.getElementById('btnVoice');
+            const fileInput = document.getElementById('fileInput');
+            const voiceModal = document.getElementById('voiceRecordModal');
+
+            if (input) {
+                input.addEventListener('input', function() {
+                    updateCharCount();
+                    if (this.value.trim()) {
+                        startTyping();
+                    } else {
+                        stopTyping();
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+
+                input.addEventListener('blur', stopTyping);
+            }
+
+            if (btnSend) btnSend.addEventListener('click', sendMessage);
+            if (btnEndChat) btnEndChat.addEventListener('click', endChat);
+            if (btnAttachment) btnAttachment.addEventListener('click', selectFiles);
+            if (btnImage) btnImage.addEventListener('click', () => {
+                fileInput.accept = 'image/*';
+                fileInput.click();
+                fileInput.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt';
+            });
+            if (btnCamera) btnCamera.addEventListener('click', openCamera);
+            if (btnVoice) btnVoice.addEventListener('click', openVoiceModal);
+
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileSelect);
+            }
+
+            const btnStartRecord = document.getElementById('btnStartRecord');
+            const btnStopRecord = document.getElementById('btnStopRecord');
+            const btnPlayRecord = document.getElementById('btnPlayRecord');
+            const btnSendVoice = document.getElementById('btnSendVoice');
+            const btnCancelVoice = document.getElementById('btnCancelVoice');
+            const btnCloseModal = document.querySelector('.btn-close-modal');
+
+            if (btnStartRecord) btnStartRecord.addEventListener('click', startRecording);
+            if (btnStopRecord) btnStopRecord.addEventListener('click', stopRecording);
+            if (btnPlayRecord) btnPlayRecord.addEventListener('click', playRecording);
+            if (btnSendVoice) btnSendVoice.addEventListener('click', sendVoiceMessage);
+            if (btnCancelVoice) btnCancelVoice.addEventListener('click', closeVoiceModal);
+            if (btnCloseModal) btnCloseModal.addEventListener('click', closeVoiceModal);
+
+            if (voiceModal) {
+                voiceModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeVoiceModal();
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                if (input) input.focus();
+            }, 1000);
+        });
+
         function endChat() {
             if (confirm('هل تريد إنهاء المحادثة؟')) {
                 if (connection) {
@@ -855,63 +1750,6 @@
             }
         }
 
-        // التهريب من HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            // التحقق من البيانات
-            if (!currentUserId || !currentChatId) {
-                alert('خطأ في البيانات، سيتم التوجيه إلى الصفحة الرئيسية');
-                window.location.href = '/';
-                return;
-            }
-
-            // تهيئة الاتصال
-            initializeConnection();
-
-            // إعداد الأحداث
-            const input = document.getElementById('msgInput');
-            const btnSend = document.getElementById('btnSend');
-            const btnEndChat = document.getElementById('btnEndChat');
-
-            if (input) {
-                input.addEventListener('input', function() {
-                    updateCharCount();
-                    if (this.value.trim()) {
-                        startTyping();
-                    }
-                });
-
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-
-                input.addEventListener('blur', stopTyping);
-            }
-
-            if (btnSend) {
-                btnSend.addEventListener('click', sendMessage);
-            }
-
-            if (btnEndChat) {
-                btnEndChat.addEventListener('click', endChat);
-            }
-
-            // التركيز على حقل الإدخال
-            setTimeout(() => {
-                if (input) input.focus();
-            }, 1000);
-        });
-
-        // إغلاق الصفحة
         window.addEventListener('beforeunload', function() {
             if (connection && connection.state === 'Connected') {
                 connection.invoke("LeaveChat", currentChatId)

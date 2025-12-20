@@ -13,17 +13,12 @@ namespace Chat.Infrastructure
 
             // ✅ Unit of Work registration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-
-            return services;
-        }
-
-        public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
-        {
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
-           
+
 
             return services;
         }
+
+      
     }
 }

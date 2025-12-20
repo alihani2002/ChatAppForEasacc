@@ -2,9 +2,10 @@
 {
     public enum MessageType
     {
-        Text = 1,
-        Image = 2,
-        Document = 3,
-        Voice = 4
+        Text = 0,
+        Image = 1,
+        Video = 2,
+       Document = 3 ,
+        Voice = 4 
     }
 }

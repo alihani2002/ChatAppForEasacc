@@ -37,7 +37,16 @@ function setupSignalREvents() {
     connection.on("ReceiveMessage", (senderId, message, time) => {
         displayMessage(message, senderId === currentUserId, time, senderId);
     });
-
+    connection.on("ReceiveFileMessage", (data) => {
+        displayFileMessage(
+            data.fileUrl,
+            data.messageType,
+            data.fileName,
+            data.senderId === currentUserId,
+            data.time,
+            data.senderId
+        );
+    });
     // مؤشر الكتابة
     connection.on("UserTyping", (chatId, userId) => {
         if (chatId === currentChatId && userId !== currentUserId) {
@@ -68,6 +77,54 @@ function onConnected() {
     updateConnectionStatus("connected", "متصل");
     joinChatRoom();
 }
+
+function displayFileMessage(fileUrl, messageType, isMe, time, senderId) {
+    const chatBox = document.getElementById("chatBox");
+    if (!chatBox) return;
+
+    const messageDiv = document.createElement("div");
+    messageDiv.className = isMe ? "message-sent" : "message-received";
+
+    let content = "";
+
+    switch (messageType) {
+        case MessageType.Image:
+            content = `<img src="${fileUrl}" class="chat-image" />`;
+            break;
+
+        case MessageType.Video:
+            content = `
+                <video controls class="chat-video">
+                    <source src="${fileUrl}" type="video/mp4">
+                </video>`;
+            break;
+
+        case MessageType.Audio:
+            content = `
+                <audio controls>
+                    <source src="${fileUrl}" type="audio/mpeg">
+                </audio>`;
+            break;
+
+        case MessageType.Document:
+        default:
+            content = `
+                <a href="${fileUrl}" target="_blank" class="chat-file">
+                    📎 تحميل الملف
+                </a>`;
+            break;
+    }
+
+    messageDiv.innerHTML = `
+        ${!isMe ? `<div class="message-sender">الدعم</div>` : ""}
+        <div class="message-content">${content}</div>
+        <span class="message-time">${time}</span>
+    `;
+
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
 
 // الانضمام للغرفة
 function joinChatRoom() {
@@ -214,3 +271,33 @@ window.chatHelper = {
     leaveChat: leaveChat,
     notifyTyping: notifyTyping
 };
+
+async function uploadFile(chatId, file, messageType) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("messageType", messageType);
+
+    const response = await fetch(`/${chatId}/upload`, {
+        method: "POST",
+        body: formData
+    });
+
+    if (!response.ok) {
+        displaySystemMessage("فشل رفع الملف");
+        return;
+    }
+
+    const data = await response.json();
+
+    // بث الرسالة عبر SignalR
+    await connection.invoke(
+        "BroadcastFileMessage",
+        chatId.toString(),
+        data.id,
+        data.fileUrl,
+        data.messageType,
+        data.fileName,
+        data.time,
+        data.senderId
+    );
+}

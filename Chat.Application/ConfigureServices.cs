@@ -1,4 +1,5 @@
-﻿using Chat.Application.Interfaces.Services.Chat;
+﻿using Chat.Application.Interfaces.Services;
+using Chat.Application.Interfaces.Services.Chat;
 using Chat.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 

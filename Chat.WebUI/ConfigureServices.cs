@@ -5,6 +5,7 @@ using Chat.Core;
 using Chat.infrastructure.Data;
 using Chat.Infrastructure.SignalR;
 using Chat.WebUI.Helper;
+using Chat.WebUI.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Chat.WebUI
@@ -67,7 +68,7 @@ namespace Chat.WebUI
             // ==============================================
             services.AddScoped<IFileServices, FileServices>();
             builder.Services.AddScoped<IEmailService, EmailService>();
-
+            services.AddScoped<IFileService, FileService>();
             builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 
 
