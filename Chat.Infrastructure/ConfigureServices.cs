@@ -9,7 +9,6 @@ namespace Chat.Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,
             IConfiguration configuration)
         {
-            // Database Context (ONLY HERE)
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     configuration.GetConnectionString("DefaultConnection"),

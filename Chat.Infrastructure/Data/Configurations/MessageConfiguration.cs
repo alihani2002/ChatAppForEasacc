@@ -7,7 +7,7 @@ namespace Chat.Infrastructure.Data.Configurations
         public void Configure(EntityTypeBuilder<Message> builder)
         {
             builder.Property(x => x.Content)
-                   .IsRequired(false)  // Content is optional for file messages
+                   .IsRequired(false)  
                    .HasMaxLength(2000);
 
             builder.Property(x => x.SenderId)

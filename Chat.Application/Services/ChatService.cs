@@ -1,24 +1,19 @@
-﻿using Chat.Application.Interfaces.Services;
-using Chat.Core.Entities;
-using Chat.Core.Enums;
-
-namespace Chat.Application.Services
+﻿namespace Chat.Application.Services
 {
     public class ChatService : IChatService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public ChatService(IUnitOfWork unitOfWork)
+        public ChatService(IUnitOfWork unitOfWork , IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            
         }
 
-        public async Task<Message> SendFileMessageAsync(
-            int sessionId,
-            string senderId,
-            string fileUrl,
-            string fileName,
-            MessageType messageType
+        public async Task<MessageVM> SendFileMessageAsync(int sessionId, string senderId,
+            string fileUrl,string fileName, MessageType messageType
         )
         {
             var session = await _unitOfWork.ChatSessions.GetById(sessionId);
@@ -33,7 +28,8 @@ namespace Chat.Application.Services
                 FileName = fileName,
                 MessageType = messageType,
                 Status = MessageStatus.Sent,
-                CreatedOn = DateTime.Now
+                CreatedOn = DateTime.Now ,
+                
             };
 
             session.LastMessageOn = DateTime.Now;
@@ -42,7 +38,7 @@ namespace Chat.Application.Services
             _unitOfWork.ChatSessions.Update(session);
             _unitOfWork.Complete();
 
-            return message;
+            return _mapper.Map<MessageVM>(message);
         }
 
         public async Task<ChatSession> CreateSessionAsync(string userId)
@@ -59,7 +55,7 @@ namespace Chat.Application.Services
             return session;
         }
 
-        public async Task<Message> SendMessageAsync(int sessionId, string senderId, string content)
+        public async Task<MessageVM> SendMessageAsync(int sessionId, string senderId, string content)
         {
             var session = await _unitOfWork.ChatSessions.GetById(sessionId);
             if (session == null || session.IsClosed)
@@ -81,7 +77,7 @@ namespace Chat.Application.Services
             _unitOfWork.ChatSessions.Update(session);
             _unitOfWork.Complete();
 
-            return message;
+    return _mapper.Map<MessageVM>(message);
         }
 
         public async Task CloseSessionAsync(string userId)
@@ -106,10 +102,6 @@ namespace Chat.Application.Services
             return await _unitOfWork.Messages
                 .FindAll(x => x.ChatSessionId == sessionId);
         }
-
-        // ==============================================
-        // الدوال الجديدة
-        // ==============================================
 
         public async Task<Message?> GetMessageAsync(int messageId)
         {
@@ -144,16 +136,5 @@ namespace Chat.Application.Services
             _unitOfWork.Complete();
         }
 
-        public async Task<IEnumerable<ChatSession>> GetUserSessionsAsync(string userId)
-        {
-            return await _unitOfWork.ChatSessions
-                .FindAll(s => s.UserId == userId);
-        }
-
-        public async Task<IEnumerable<ApplicationUser>> GetAvailableAdminsAsync()
-        {
-            return await _unitOfWork.ApplicationUsers
-                .FindAll(u => u.Role == "Admin" || u.Role == "Support");
-        }
     }
 }

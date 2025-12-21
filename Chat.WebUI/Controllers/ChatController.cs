@@ -26,7 +26,7 @@ namespace Chat.WebUI.Controllers
         // 🟢 Dashboard
         public async Task<IActionResult> Index()
         {
-            var sessions = await _chatAdminService.GetAllSessionsAsync();
+            var sessions = await _chatAdminService.GetAllActiveSessionsAsync();
             return View(sessions);
         }
 

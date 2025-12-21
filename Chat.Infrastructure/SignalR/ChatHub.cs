@@ -1,5 +1,4 @@
 ﻿using Chat.Application.Interfaces.Services;
-using Chat.Application.Interfaces.Services.Chat;
 using Chat.Core.Entities;
 using Chat.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -36,16 +35,12 @@ public class ChatHub : Hub
         var userId = Context.UserIdentifier;
         var connectionId = Context.ConnectionId;
 
-        // إزالة من القوائم
         _userConnections.TryRemove(connectionId, out _);
-
-        // إزالة من typing indicators
         foreach (var chat in _typingUsers)
         {
             chat.Value.Remove(userId);
         }
 
-        // إغلاق الجلسة إذا لم يكن هناك اتصالات أخرى للمستخدم
         if (!string.IsNullOrEmpty(userId))
         {
             var remainingConnections = _userConnections.Values.Count(v => v == userId);
@@ -68,7 +63,6 @@ public class ChatHub : Hub
 
         await Clients.Group(chatId).SendAsync("UserJoined", userId);
 
-        // إرسال آخر الرسائل للمستخدم الجديد
         var messages = await _chatService.GetMessagesAsync(int.Parse(chatId));
         foreach (var msg in messages)
         {
@@ -101,17 +95,14 @@ public class ChatHub : Hub
         if (string.IsNullOrEmpty(senderId))
             throw new HubException("Unauthorized");
 
-        // تحديث آخر نشاط
         _lastActivity[senderId] = DateTime.UtcNow;
 
-        // حفظ الرسالة في قاعدة البيانات
         var savedMessage = await _chatService.SendMessageAsync(
             int.Parse(chatId),
             senderId,
             message
         );
 
-        // إرسال الرسالة لجميع المشتركين في المحادثة
         await Clients.Group(chatId).SendAsync(
             "ReceiveMessage",
             senderId,
@@ -120,20 +111,16 @@ public class ChatHub : Hub
             savedMessage.Id
         );
 
-        // تحديث حالة الرسالة إلى Delivered بشكل غير متزامن
         _ = Task.Run(async () =>
         {
-            await Task.Delay(500); // تأخير بسيط
+            await Task.Delay(500); 
             await _chatService.UpdateMessageStatusAsync(savedMessage.Id, MessageStatus.Delivered);
-
-            // إرسال تحديث حالة الرسالة للمرسل فقط
             await Clients.Caller.SendAsync("MessageStatusUpdated",
                 savedMessage.Id,
                 MessageStatus.Delivered);
         });
     }
 
-    // مؤشر الكتابة
     public async Task StartTyping(string chatId)
     {
         var userId = Context.UserIdentifier;
@@ -143,7 +130,6 @@ public class ChatHub : Hub
             new HashSet<string> { userId },
             (key, existingSet) => { existingSet.Add(userId); return existingSet; });
 
-        // إرسال إشعار للجميع عدا المرسل
         await Clients.OthersInGroup(chatId).SendAsync("UserStartedTyping", chatId, userId);
     }
 
@@ -156,7 +142,6 @@ public class ChatHub : Hub
         {
             users.Remove(userId);
 
-            // إذا لم يعد أحد يكتب، أرسل إشعار إيقاف
             if (users.Count == 0)
             {
                 await Clients.Group(chatId).SendAsync("UserStoppedTyping", chatId, userId);
@@ -166,15 +151,11 @@ public class ChatHub : Hub
 
     public async Task LeaveChat(string chatId)
     {
-        // إزالة المستخدم من المجموعة
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
-
-        // إرسال إشعار خروج
         var userId = Context.UserIdentifier;
         await Clients.Group(chatId).SendAsync("UserLeft", userId);
     }
 
-    // تحديث حالة الرسالة (Seen/Delivered)
     public async Task UpdateMessageStatus(int messageId, MessageStatus status)
     {
         var userId = Context.UserIdentifier;
@@ -183,7 +164,6 @@ public class ChatHub : Hub
         var updated = await _chatService.UpdateMessageStatusAsync(messageId, status);
         if (updated)
         {
-            // إرسال التحديث لصاحب الرسالة
             var message = await _chatService.GetMessageAsync(messageId);
             if (message != null && message.SenderId != userId)
             {
@@ -192,27 +172,23 @@ public class ChatHub : Hub
         }
     }
 
-    // بث رسالة ملف (يتم استدعاؤها من الـ Controller بعد رفع الملف)
     public async Task BroadcastFileMessage(string chatId, object fileMessageData)
     {
         await Clients.Group(chatId).SendAsync("ReceiveFileMessage", fileMessageData);
     }
 
-    // الحصول على آخر نشاط للمستخدم
     public DateTime? GetUserLastActivity(string userId)
     {
         return _lastActivity.TryGetValue(userId, out var lastActivity) ? lastActivity : null;
     }
 
-    // إغلاق المحادثة تلقائياً بعد عدم النشاط
     public static async Task CheckAndCloseInactiveChats(IHubContext<ChatHub> hubContext, IChatService chatService)
     {
         var now = DateTime.UtcNow;
         foreach (var activity in _lastActivity)
         {
-            if ((now - activity.Value).TotalMinutes >= 1) // بعد دقيقة من عدم النشاط
+            if ((now - activity.Value).TotalMinutes >= 1) 
             {
-                // إرسال رسالة إنهاء المحادثة
                 var connections = _userConnections
                     .Where(c => c.Value == activity.Key)
                     .Select(c => c.Key);
@@ -223,14 +199,12 @@ public class ChatHub : Hub
                         "The chat will be terminated because we have not received a response from you.");
                 }
 
-                // إغلاق الجلسة
                 await chatService.CloseSessionAsync(activity.Key);
                 _lastActivity.TryRemove(activity.Key, out _);
             }
         }
     }
 
-    // دوال إضافية للوحة تحكم المدير
     public async Task<IEnumerable<ChatSession>> GetActiveSessions()
     {
         var userId = Context.UserIdentifier;
@@ -246,7 +220,6 @@ public class ChatHub : Hub
 
         await _chatService.AssignAdminToSessionAsync(sessionId, adminId);
 
-        // إرسال إشعار للمستخدم
         var session = await _chatService.GetActiveSessionsAsync();
         var targetSession = session.FirstOrDefault(s => s.Id == sessionId);
         if (targetSession != null)

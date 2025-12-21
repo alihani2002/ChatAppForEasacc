@@ -1,5 +1,4 @@
-﻿using Chat.Application.Interfaces.Services;
-using Chat.Application.Interfaces.Services.Chat;
+﻿using Chat.Application.Mappings;
 using Chat.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +11,7 @@ namespace Chat.Application
 
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IChatAdminService, ChatAdminService>();
+            services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
             return services;
 

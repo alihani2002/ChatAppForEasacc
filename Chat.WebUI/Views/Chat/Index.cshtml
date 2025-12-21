@@ -1,12 +1,11 @@
 ﻿@model List<Chat.Application.ChatSessionVM>
 
 @{
-    ViewData["Title"] = "لوحة تحكم المشرف";
+    ViewData["Title"] = "Admin Dashboard";
     Layout = "_Layout";
 }
 
 <div class="admin-dashboard">
-    <!-- Header -->
     <div class="dashboard-header">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
@@ -427,9 +426,10 @@
         return userId.Length > 15 ? userId.Substring(0, 12) + "..." : userId;
     }
 }
+</div>
+
 
 <style>
-    /* ===== ADMIN DASHBOARD ===== */
     .admin-dashboard {
         min-height: 100vh;
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);

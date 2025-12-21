@@ -1,6 +1,4 @@
-﻿using Chat.Core.Entities;
-
-namespace Chat.Application.Interfaces.Repositories
+﻿namespace Chat.Application.Interfaces.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

@@ -6,8 +6,8 @@ namespace Chat.Application.Services.Email
 {
     public class EmailService : IEmailService
     {
-        private readonly string _email = "aldevssoft@gmail.com";
-        private readonly string _password = "zxze tbim vyni kbgq"; // Gmail App Password
+        private readonly string _email = "";
+        private readonly string _password = ""; // Gmail App Password
 
         public async Task SendAsync(string subject, string body)
         {

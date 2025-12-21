@@ -7,11 +7,9 @@ namespace Chat.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // ✅ Database Context
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // ✅ Unit of Work registration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
             services.AddHostedService<Services.ChatTimeoutService>();
@@ -19,7 +17,5 @@ namespace Chat.Infrastructure
 
             return services;
         }
-
-      
     }
 }

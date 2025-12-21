@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.SignalR;
-using Chat.Application.Interfaces.Services.Chat;
-using Microsoft.Extensions.Hosting;
 using Chat.Application.Interfaces.Services;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 
 namespace Chat.Infrastructure.Services
 {
@@ -22,19 +21,12 @@ namespace Chat.Infrastructure.Services
         {
             while (await _timer.WaitForNextTickAsync(stoppingToken) && !stoppingToken.IsCancellationRequested)
             {
-                try
-                {
-                    using (var scope = _scopeFactory.CreateScope())
+                using (var scope = _scopeFactory.CreateScope())
                     {
                         var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
                         await ChatHub.CheckAndCloseInactiveChats(_hubContext, chatService);
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Log exception (if logger was injected)
-                    // For now we just suppress to prevent service crash
-                }
+              
             }
         }
     }

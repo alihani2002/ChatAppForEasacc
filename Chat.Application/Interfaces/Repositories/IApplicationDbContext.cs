@@ -1,7 +1,4 @@
-﻿using Chat.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace Chat.Application.Interfaces.Repositories
+﻿namespace Chat.Application.Interfaces.Repositories
 {
     public interface IApplicationDbContext
     {

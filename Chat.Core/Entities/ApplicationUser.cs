@@ -11,7 +11,7 @@ namespace Chat.Core
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public string Role { get; set; } = null!;
 
-        // 🔗 Relations
+
         public ICollection<ChatSession> UserChatSessions { get; set; } = new List<ChatSession>();
         public ICollection<ChatSession> AdminChatSessions { get; set; } = new List<ChatSession>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();

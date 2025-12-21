@@ -1,6 +1,4 @@
-﻿using Chat.Application.Interfaces.Services;
-
-namespace Chat.Application.Services
+﻿namespace Chat.Application.Services
 {
     public class ApplicationUserService : BaseService<ApplicationUser>, IApplicationUserService
     {

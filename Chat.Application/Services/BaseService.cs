@@ -1,6 +1,4 @@
-﻿using Chat.Application.Interfaces.Services;
-
-namespace Chat.Application.Services
+﻿namespace Chat.Application.Services
 {
     public class BaseService<T> : IBaseService<T> where T : class
     {
@@ -52,7 +50,6 @@ namespace Chat.Application.Services
             var entity = await _repository.GetById(id);
             if (entity is null) return;
 
-            // Apply soft delete
             var property = entity.GetType().GetProperty(nameof(BaseEntity.IsDeleted));
             if (property != null)
             {
