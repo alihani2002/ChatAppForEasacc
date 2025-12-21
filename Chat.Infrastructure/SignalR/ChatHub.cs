@@ -205,7 +205,7 @@ public class ChatHub : Hub
     }
 
     // إغلاق المحادثة تلقائياً بعد عدم النشاط
-    public async Task CheckAndCloseInactiveChats()
+    public static async Task CheckAndCloseInactiveChats(IHubContext<ChatHub> hubContext, IChatService chatService)
     {
         var now = DateTime.UtcNow;
         foreach (var activity in _lastActivity)
@@ -219,12 +219,12 @@ public class ChatHub : Hub
 
                 foreach (var conn in connections)
                 {
-                    await Clients.Client(conn).SendAsync("SessionTimeout",
+                    await hubContext.Clients.Client(conn).SendAsync("SessionTimeout",
                         "The chat will be terminated because we have not received a response from you.");
                 }
 
                 // إغلاق الجلسة
-                await _chatService.CloseSessionAsync(activity.Key);
+                await chatService.CloseSessionAsync(activity.Key);
                 _lastActivity.TryRemove(activity.Key, out _);
             }
         }

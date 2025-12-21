@@ -1239,7 +1239,7 @@
 
         function sendTextMessage(message) {
             if (connection && connection.state === 'Connected') {
-                displayMessage(message, true, null, currentUserId);
+                // displayMessage(message, true, null, currentUserId); // Removed to prevent duplication
 
                 connection.invoke("SendMessage", currentChatId.toString(), message)
                     .then(() => {

@@ -14,6 +14,7 @@ namespace Chat.Infrastructure
             // ✅ Unit of Work registration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
+            services.AddHostedService<Services.ChatTimeoutService>();
 
 
             return services;
