@@ -935,6 +935,7 @@
             'audio/mpeg': MessageType.Voice,
             'audio/wav': MessageType.Voice,
             'audio/ogg': MessageType.Voice,
+            'audio/webm': MessageType.Voice,
             'application/pdf': MessageType.Document,
             'application/msword': MessageType.Document,
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': MessageType.Document,
@@ -1039,7 +1040,7 @@
                 displaySystemMessage(message);
                 setTimeout(() => {
                     if (confirm("تم إنهاء المحادثة لعدم النشاط. هل تريد بدء محادثة جديدة؟")) {
-                        window.location.reload();
+                    window.location.href = "/";
                     }
                 }, 2000);
             });
@@ -1155,7 +1156,7 @@
                     content = `
                         <div class="message-content">
                             <audio controls class="chat-audio">
-                                <source src="${fileUrl}" type="audio/mpeg">
+                                <source src="${fileUrl}" type="audio/webm">
                                 ${escapeHtml(displayFileName)}
                             </audio>
                         </div>

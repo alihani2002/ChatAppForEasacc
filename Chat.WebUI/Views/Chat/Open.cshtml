@@ -1137,6 +1137,7 @@
             'audio/mpeg': MessageType.Voice,
             'audio/wav': MessageType.Voice,
             'audio/ogg': MessageType.Voice,
+            'audio/webm': MessageType.Voice,
             'application/pdf': MessageType.Document,
             'application/msword': MessageType.Document,
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': MessageType.Document,
@@ -2105,16 +2106,9 @@
                     );
                 }
 
-                // Fallback: Display locally
-                displayFileMessage(
-                    data.fileUrl,
-                    data.messageType,
-                    data.fileName,
-                    true,
-                    data.time,
-                    currentUserId,
-                    data.id
-                );
+                // Removed manual display to prevent duplicates since we receive the message via SignalR
+                // If you want optimistic UI, you should add it with a temp ID and replace it later logic, 
+                // but for now relying on SignalR echo is safer for duplicates.
 
                 addSystemMessage(`تم إرسال ${file.name} بنجاح`);
                 return data;
@@ -2192,7 +2186,7 @@
                     content = `
                         <div class="message-content">
                             <audio controls class="chat-audio">
-                                <source src="${fileUrl}" type="audio/mpeg">
+                                <source src="${fileUrl}" type="audio/webm">
                                 ${escapeHtml(displayFileName)}
                             </audio>
                         </div>

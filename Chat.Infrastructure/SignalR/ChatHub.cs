@@ -126,6 +126,8 @@ public class ChatHub : Hub
         var userId = Context.UserIdentifier;
         if (string.IsNullOrEmpty(userId)) return;
 
+        _lastActivity[userId] = DateTime.UtcNow;
+
         _typingUsers.AddOrUpdate(chatId,
             new HashSet<string> { userId },
             (key, existingSet) => { existingSet.Add(userId); return existingSet; });
@@ -174,6 +176,11 @@ public class ChatHub : Hub
 
     public async Task BroadcastFileMessage(string chatId, object fileMessageData)
     {
+        var userId = Context.UserIdentifier;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            _lastActivity[userId] = DateTime.UtcNow;
+        }
         await Clients.Group(chatId).SendAsync("ReceiveFileMessage", fileMessageData);
     }
 
