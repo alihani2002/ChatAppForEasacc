@@ -1,0 +1,91 @@
+.register-side {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.register-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.benefits-list i {
+    color: #60a5fa;
+}
+
+.form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    border-color: #4f46e5;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.toggle-password {
+    border-color: #dee2e6;
+    border-left: none;
+}
+
+.toggle-password:hover {
+    background-color: #f8f9fa;
+}
+
+.password-strength .progress-bar {
+    transition: width 0.3s;
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #4f46e520 0%, #7c3aed20 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* تخصيص للأجهزة المحمولة */
+@media (max-width: 992px) {
+    .register-side {
+        height: 250px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .feature-icon i {
+        font-size: 1.5rem;
+    }
+}
