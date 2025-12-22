@@ -173,6 +173,9 @@
                                     <th class="ps-4" width="250">
                                         <i class="fas fa-user me-2"></i>المستخدم
                                     </th>
+                                     <th width="120" class="text-end pe-4">
+                                        <i class="fas fa-cogs me-2"></i>الإجراءات
+                                    </th>
                                     <th width="120">
                                         <i class="fas fa-circle me-2"></i>الحالة
                                     </th>
@@ -182,9 +185,7 @@
                                     <th width="180">
                                         <i class="fas fa-clock me-2"></i>آخر نشاط
                                     </th>
-                                    <th width="120" class="text-end pe-4">
-                                        <i class="fas fa-cogs me-2"></i>الإجراءات
-                                    </th>
+                                   
                                 </tr>
                             </thead>
                             <tbody id="chatTable">
@@ -213,7 +214,23 @@
                                                 </div>
                                             </div>
                                         </td>
+                                          <!-- Actions Column -->
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Open"
+                                                   asp-route-id="@session.Id"
+                                                   class="btn btn-sm btn-primary btn-action"
+                                                   title="فتح المحادثة">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
 
+                                                <button class="btn btn-sm btn-outline-primary btn-action"
+                                                        onclick="openHistory('@session.UserId')"
+                                                        title="سجل المحادثات">
+                                                    <i class="fas fa-history"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                         <!-- Status Column -->
                                         <td>
                                             @if (session.IsClosed)
@@ -253,23 +270,7 @@
                                             </div>
                                         </td>
 
-                                        <!-- Actions Column -->
-                                        <td class="text-end pe-4">
-                                            <div class="btn-group" role="group">
-                                                <a asp-action="Open"
-                                                   asp-route-id="@session.Id"
-                                                   class="btn btn-sm btn-primary btn-action"
-                                                   title="فتح المحادثة">
-                                                    <i class="fas fa-external-link-alt"></i>
-                                                </a>
-
-                                                <button class="btn btn-sm btn-outline-primary btn-action"
-                                                        onclick="openHistory('@session.UserId')"
-                                                        title="سجل المحادثات">
-                                                    <i class="fas fa-history"></i>
-                                                </button>
-                                            </div>
-                                        </td>
+                                      
                                     </tr>
                                 }
                             </tbody>
