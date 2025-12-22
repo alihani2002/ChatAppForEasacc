@@ -1,25 +1,449 @@
 ﻿@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "الصفحة غير موجودة";
+    Layout = "_Layout"; // Use your existing layout
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="error-404-page">
+    <div class="container">
+        <div class="error-content text-center">
+            <h1 class="error-title">404 - الصفحة غير موجودة</h1>
+            <p class="error-description">
+                عذراً! الصفحة التي تبحث عنها لا يمكن العثور عليها. ربما تم نقل الصفحة التي طلبتها أو حذفها.
+                من الممكن أيضاً أن يكون هناك خطأ بسيط عند إدخال العنوان. الرجاء العودة للصفحة الرئيسية.
+            </p>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+            <div class="error-animation-wrapper">
+                <img src="https://github.com/BlackStar1991/Pictures-for-sharing-/blob/master/404/bigBoom/cloud_warmcasino.png?raw=true"
+                     alt="cloud" class="cloud-image">
+                <div class="animation-element el1"></div>
+                <div class="animation-element el2"></div>
+                <div class="animation-element el3"></div>
+            </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+            <div class="error-actions mt-5">
+                <a href="/" class="home-btn">
+                    <i class="fas fa-home me-2"></i>العودة للصفحة الرئيسية
+                </a>
+                <a href="javascript:history.back()" class="back-btn">
+                    <i class="fas fa-arrow-right me-2"></i>العودة للصفحة السابقة
+                </a>
+                <a href="mailto:support@chat-system.com" class="support-btn">
+                    <i class="fas fa-headset me-2"></i>اتصل بالدعم
+                </a>
+            </div>
+
+            <div class="search-box mt-4">
+                <p class="mb-3">ابحث في الموقع:</p>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" placeholder="ماذا تبحث عن؟">
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-404-page {
+        min-height: calc(100vh - 80px);
+        padding-top: 100px;
+        padding-bottom: 80px;
+        background: linear-gradient(135deg, #0f172a 0%, #1d3041 100%);
+        color: #fff;
+        font-family: 'Tajawal', sans-serif;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .error-404-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(67, 97, 238, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(76, 201, 240, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+    .error-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .error-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeInDown 0.8s ease;
+    }
+
+    .error-description {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #bcecf2;
+        margin-bottom: 3rem;
+        opacity: 0.9;
+        animation: fadeInUp 0.8s ease 0.2s both;
+    }
+
+    .error-animation-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+        min-height: 410px;
+        margin: 0 auto 3rem;
+        animation: fadeIn 1s ease 0.4s both;
+    }
+
+    .cloud-image {
+        width: 100%;
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animation-element {
+        position: absolute;
+        z-index: 2;
+    }
+
+    .el1 {
+        top: 108px;
+        right: 102px;
+        width: 84px;
+        height: 106px;
+        background: url("https://github.com/BlackStar1991/Pictures-for-sharing-/blob/master/404/bigBoom/404-1.png?raw=true") 50% 50% no-repeat;
+        animation: el1Move 800ms linear infinite;
+    }
+
+    .el2 {
+        top: 92px;
+        right: 136px;
+        width: 184px;
+        height: 106px;
+        background: url("https://github.com/BlackStar1991/Pictures-for-sharing-/blob/master/404/bigBoom/404-2.png?raw=true") 50% 50% no-repeat;
+        animation: el2Move 800ms linear infinite;
+    }
+
+    .el3 {
+        top: 108px;
+        right: 180px;
+        width: 284px;
+        height: 106px;
+        background: url("https://github.com/BlackStar1991/Pictures-for-sharing-/blob/master/404/bigBoom/404-3.png?raw=true") 50% 50% no-repeat;
+        animation: el3Move 800ms linear infinite;
+    }
+
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease 0.6s both;
+    }
+
+    .home-btn, .back-btn, .support-btn {
+        padding: 0.8rem 2rem;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .home-btn {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        color: white;
+        box-shadow: 0 5px 0 #2a1a9c, inset 0 0 18px rgba(67, 97, 238, 0.75);
+        border: none;
+    }
+
+    .back-btn {
+        background: transparent;
+        color: #4cc9f0;
+        border: 2px solid #4cc9f0;
+    }
+
+    .support-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .home-btn:hover {
+        background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+    }
+
+    .back-btn:hover {
+        background: #4cc9f0;
+        color: #0f172a;
+        transform: translateY(-3px);
+    }
+
+    .support-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+    }
+
+    .search-box {
+        animation: fadeInUp 0.8s ease 0.8s both;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.8rem 1.5rem;
+        padding-left: 3.5rem;
+        border-radius: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+        .search-input:focus {
+            border-color: #4361ee;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+    .search-btn {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #4cc9f0;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+
+    /* Animations */
+    @@keyframes el1Move {
+        0% {
+            top: 108px;
+            right: 102px;
+            opacity: 1;
+        }
+
+        100% {
+            top: -10px;
+            right: 22px;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes el2Move {
+        0% {
+            top: 92px;
+            right: 136px;
+            opacity: 1;
+        }
+
+        100% {
+            top: -10px;
+            right: 108px;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes el3Move {
+        0% {
+            top: 108px;
+            right: 180px;
+            opacity: 1;
+        }
+
+        100% {
+            top: 28px;
+            right: 276px;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .error-404-page {
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+
+        .error-title {
+            font-size: 2rem;
+        }
+
+        .error-description {
+            font-size: 1rem;
+            padding: 0 1rem;
+        }
+
+        .error-animation-wrapper {
+            max-width: 320px;
+            min-height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .el1 {
+            top: 78px;
+            right: 74px;
+            transform: scale(0.8);
+        }
+
+        .el2 {
+            top: 66px;
+            right: 98px;
+            transform: scale(0.8);
+        }
+
+        .el3 {
+            top: 78px;
+            right: 130px;
+            transform: scale(0.8);
+        }
+
+        .home-btn, .back-btn, .support-btn {
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .search-input-wrapper {
+            max-width: 300px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .error-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .home-btn, .back-btn, .support-btn {
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+
+        .error-animation-wrapper {
+            max-width: 280px;
+            min-height: 260px;
+        }
+
+        .el1, .el2, .el3 {
+            transform: scale(0.7);
+        }
+
+        .el1 {
+            top: 68px;
+            right: 64px;
+        }
+
+        .el2 {
+            top: 58px;
+            right: 84px;
+        }
+
+        .el3 {
+            top: 68px;
+            right: 110px;
+        }
+    }
+</style>
+
+<script>
+    // Handle search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-btn');
+
+        searchBtn.addEventListener('click', function() {
+            if (searchInput.value.trim()) {
+                alert('سيتم البحث عن: ' + searchInput.value + '\n(هذه مجرد ديمو - في التطبيق الفعلي سيتم البحث في الموقع)');
+            }
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+
+        // Auto focus on search input
+        setTimeout(() => {
+            searchInput.focus();
+        }, 1000);
+
+        // Log 404 error for analytics
+        console.warn('404 Error - Page not found:', {
+            url: window.location.href,
+            referrer: document.referrer,
+            timestamp: new Date().toISOString()
+        });
+    });
+</script>

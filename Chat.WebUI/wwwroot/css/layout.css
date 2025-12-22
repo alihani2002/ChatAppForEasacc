@@ -412,3 +412,23 @@ body::before {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
 }
+
+
+/* Add these styles to your existing layout.css */
+
+.main-content {
+    min-height: calc(100vh - 80px);
+    padding-top: 80px;
+    position: relative;
+}
+
+    /* Remove the extra br tags from your layout */
+    .main-content + br {
+        display: none;
+    }
+
+/* Error page specific styles */
+.error-page .container {
+    position: relative;
+    z-index: 1;
+}

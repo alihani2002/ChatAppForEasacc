@@ -108,9 +108,9 @@
                                 <!-- الروابط المساعدة -->
                                 <div class="text-center mt-4">
                                     <div class="d-flex flex-wrap justify-content-center gap-3">
-                                        <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">
+                                    @*     <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">
                                             <i class="fas fa-question-circle me-1"></i>نسيت كلمة المرور؟
-                                        </a>
+                                        </a> *@
                                         <span class="text-muted">|</span>
                                         <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">
                                             <i class="fas fa-user-plus me-1"></i>إنشاء حساب جديد
@@ -118,34 +118,9 @@
                                     </div>
                                 </div>
 
-                                <!-- فاصل -->
-                                <div class="position-relative my-4">
-                                    <hr class="text-muted" />
-                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">
-                                        أو
-                                    </span>
-                                </div>
+                             
 
-                                <!-- الدخول باستخدام حسابات خارجية -->
-                                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
-                                {
-                                    <div class="text-center">
-                                        <p class="text-muted mb-3">سجل الدخول باستخدام:</p>
-                                        <form id="external-account" asp-page="./ExternalLogin"
-                                              asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                                            <div class="d-flex flex-wrap justify-content-center gap-2">
-                                                @foreach (var provider in Model.ExternalLogins!)
-                                                {
-                                                    <button type="submit" class="btn btn-outline-primary"
-                                                            name="provider" value="@provider.Name"
-                                                            title="تسجيل الدخول باستخدام حساب @provider.DisplayName">
-                                                        <i class="fab fa-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
-                                                    </button>
-                                                }
-                                            </div>
-                                        </form>
-                                    </div>
-                                }
+
                             </form>
                         </div>
                     </div>

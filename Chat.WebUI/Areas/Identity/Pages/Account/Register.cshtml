@@ -42,7 +42,6 @@
                         </div>
                     </div>
 
-                    <!-- جانب النموذج -->
                     <div class="col-lg-7">
                         <div class="card-body p-4 p-lg-5">
                             <div class="text-center mb-4">
@@ -57,7 +56,6 @@
                             <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                                 <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                                <!-- حقل البريد الإلكتروني -->
                                 <div class="form-group mb-3">
                                     <label asp-for="Input.Email" class="form-label fw-bold">
                                         <i class="fas fa-envelope me-2 text-primary"></i>البريد الإلكتروني
@@ -74,7 +72,6 @@
                                     <small class="form-text text-muted">سوف نرسل رسالة تأكيد على هذا البريد</small>
                                 </div>
 
-                                <!-- حقل كلمة المرور -->
                                 <div class="form-group mb-3">
                                     <label asp-for="Input.Password" class="form-label fw-bold">
                                         <i class="fas fa-lock me-2 text-primary"></i>كلمة المرور
@@ -100,7 +97,6 @@
                                     </div>
                                 </div>
 
-                                <!-- حقل تأكيد كلمة المرور -->
                                 <div class="form-group mb-4">
                                     <label asp-for="Input.ConfirmPassword" class="form-label fw-bold">
                                         <i class="fas fa-lock me-2 text-primary"></i>تأكيد كلمة المرور
@@ -121,7 +117,6 @@
                                     <small class="form-text text-muted" id="password-match-text"></small>
                                 </div>
 
-                                <!-- شروط الخدمة -->
                                 <div class="form-check mb-4">
                                     <input class="form-check-input" type="checkbox" id="termsCheck" required />
                                     <label class="form-check-label" for="termsCheck">
@@ -129,14 +124,12 @@
                                     </label>
                                 </div>
 
-                                <!-- زر التسجيل -->
                                 <div class="d-grid gap-2">
                                     <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">
                                         <i class="fas fa-user-plus me-2"></i>إنشاء حساب
                                     </button>
                                 </div>
 
-                                <!-- رابط تسجيل الدخول -->
                                 <div class="text-center mt-4">
                                     <p class="text-muted mb-0">هل لديك حساب بالفعل؟</p>
                                     <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-primary mt-2">
@@ -144,34 +137,6 @@
                                     </a>
                                 </div>
 
-                                <!-- فاصل -->
-                                <div class="position-relative my-4">
-                                    <hr class="text-muted" />
-                                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">
-                                        أو
-                                    </span>
-                                </div>
-
-                                <!-- التسجيل باستخدام حسابات خارجية -->
-                                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
-                                {
-                                    <div class="text-center">
-                                        <p class="text-muted mb-3">سجل باستخدام:</p>
-                                        <form id="external-account" asp-page="./ExternalLogin"
-                                              asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                                            <div class="d-flex flex-wrap justify-content-center gap-2">
-                                                @foreach (var provider in Model.ExternalLogins!)
-                                                {
-                                                    <button type="submit" class="btn btn-outline-primary"
-                                                            name="provider" value="@provider.Name"
-                                                            title="التسجيل باستخدام حساب @provider.DisplayName">
-                                                        <i class="fab fa-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
-                                                    </button>
-                                                }
-                                            </div>
-                                        </form>
-                                    </div>
-                                }
                             </form>
                         </div>
                     </div>
