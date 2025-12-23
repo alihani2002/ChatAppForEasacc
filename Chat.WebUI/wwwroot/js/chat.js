@@ -47,7 +47,7 @@ function setupSignalREvents() {
         const senderId = data.senderId || data.SenderId;
         const time = data.time || data.Time;
         const isMe = senderId === currentUserId;
-        
+
         displayFileMessage(
             fileUrl,
             messageType,
@@ -242,6 +242,22 @@ function updateConnectionStatus(className, text) {
     if (statusElement) {
         statusElement.textContent = text;
         statusElement.className = className;
+    }
+}
+
+function notifyTyping() {
+    if (connection && connection.state === signalR.HubConnectionState.Connected && currentChatId) {
+        connection.invoke("NotifyTyping", currentChatId, currentUserId);
+    }
+}
+
+function leaveChat() {
+    if (connection && connection.state === signalR.HubConnectionState.Connected && currentChatId) {
+        connection.invoke("LeaveChat", currentChatId.toString())
+            .then(() => {
+                connection.stop();
+            })
+            .catch(err => console.error("❌ LeaveChat Error:", err));
     }
 }
 

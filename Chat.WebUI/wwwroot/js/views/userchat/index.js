@@ -432,9 +432,6 @@ function displaySystemMessage(text) {
     scrollToBottom();
 }
 
-// ==============================================
-// دوال إرسال الرسائل
-// ==============================================
 function sendMessage() {
     const input = document.getElementById('msgInput');
     const message = input.value.trim();
@@ -550,9 +547,7 @@ async function uploadFiles() {
     }
 }
 
-// ==============================================
-// دوال مساعدة
-// ==============================================
+
 function updateConnectionStatus(status, text) {
     const statusElement = document.getElementById('connectionStatus');
     const statusDot = document.getElementById('statusDot');
@@ -857,4 +852,85 @@ async function sendVoiceMessage() {
         displaySystemMessage('فشل إرسال الرسالة الصوتية');
         alert('حدث خطأ أثناء إرسال الرسالة الصوتية');
     }
+}
+function playRecording() {
+    if (!recordedAudio) return;
+
+    const audioPlayer = new Audio(recordedAudio);
+    audioPlayer.controls = false;
+
+    audioPlayer.onended = () => {
+        document.getElementById('btnPlayRecord').innerHTML = '<i class="fas fa-play"></i><span>استماع</span>';
+    };
+
+    audioPlayer.onplay = () => {
+        document.getElementById('btnPlayRecord').innerHTML = '<i class="fas fa-pause"></i><span>إيقاف</span>';
+    };
+
+    audioPlayer.play();
+}
+function createVisualizer() {
+    const visualizer = document.getElementById('voiceVisualizer');
+    if (!visualizer || !audioStream) return;
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(audioStream);
+    source.connect(analyser);
+
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = visualizer.clientWidth;
+    canvas.height = visualizer.clientHeight;
+    const ctx = canvas.getContext('2d');
+    visualizer.innerHTML = '';
+    visualizer.appendChild(canvas);
+
+    function draw() {
+        if (!mediaRecorder || mediaRecorder.state !== 'recording') {
+            return;
+        }
+
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+
+            ctx.fillStyle = `rgb(${barHeight + 100}, 50, 150)`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+            x += barWidth + 1;
+        }
+    }
+
+    draw();
+}
+
+function startRecording() {
+    if (!mediaRecorder) return;
+
+    audioChunks = [];
+    recordSeconds = 0;
+
+    mediaRecorder.start();
+    console.log('🎤 بدأ التسجيل');
+
+    document.getElementById('btnStartRecord').disabled = true;
+    document.getElementById('btnStopRecord').disabled = false;
+    document.getElementById('btnPlayRecord').disabled = true;
+    document.getElementById('btnSendVoice').disabled = true;
+
+    updateRecordTimer();
+    recordTimer = setInterval(updateRecordTimer, 1000);
 }
