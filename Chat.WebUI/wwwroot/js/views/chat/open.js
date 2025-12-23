@@ -1,4 +1,3 @@
-// المتغيرات العامة
 let currentChatId = null;
 let currentUserId = null;
 let otherUserId = null;
@@ -38,7 +37,6 @@ let tempMessages = new Map();
 let currentTypingUsers = new Set();
 let uploadedFiles = [];
 
-// متغيرات التسجيل الصوتي
 let mediaRecorder = null;
 let audioChunks = [];
 let recordedAudio = null;
@@ -52,7 +50,6 @@ function initChatOpen(chatId, userId, otherId, isClosed) {
     otherUserId = otherId;
     isChatClosed = isClosed;
 
-    // جمع معرفات الرسائل الموجودة
     const existingMessages = document.querySelectorAll('[data-message-id]');
     existingMessages.forEach(msg => {
         const messageId = msg.getAttribute('data-message-id');
@@ -128,7 +125,6 @@ function setupChatOpenUI() {
         msgInput.addEventListener('blur', stopTyping);
     }
 
-    // التحقق من دعم المتصفح للتسجيل الصوتي
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.warn('⚠️ التسجيل الصوتي غير مدعوم في هذا المتصفح');
         if (btnVoice) btnVoice.disabled = true;
@@ -140,7 +136,6 @@ function setupChatOpenUI() {
     }, 500);
 }
 
-// تنظيف مصادر التسجيل الصوتي عند إغلاق الصفحة
 window.addEventListener('beforeunload', function () {
     if (recordedAudio) {
         URL.revokeObjectURL(recordedAudio);
@@ -150,11 +145,6 @@ window.addEventListener('beforeunload', function () {
     }
 });
 
-// ==============================================
-// Voice Recording Functions for Admin
-// ==============================================
-
-// إنشاء مودال التسجيل الصوتي ديناميكياً
 function createVoiceModal() {
     const modalHTML = `
         <div id="voiceRecordModal" class="modal-overlay">
@@ -281,19 +271,15 @@ async function initVoiceRecorder() {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 recordedAudio = URL.createObjectURL(audioBlob);
 
-                // تمكين زر الاستماع والإرسال
                 document.getElementById('btnPlayRecord').disabled = false;
                 document.getElementById('btnSendVoice').disabled = false;
 
-                // عرض رسالة تأكيد
                 console.log('✅ تم حفظ التسجيل الصوتي');
             }
         };
 
-        // تمكين زر البدء
         document.getElementById('btnStartRecord').disabled = false;
 
-        // إنشاء مؤشر مرئي
         createVisualizer();
 
     } catch (err) {

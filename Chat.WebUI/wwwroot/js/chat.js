@@ -1,7 +1,5 @@
-﻿// ~/js/chat.js
-"use strict";
+﻿"use strict";
 
-// MessageType enum
 const MessageType = {
     Text: 0,
     Image: 1,
@@ -14,7 +12,6 @@ let connection = null;
 let currentChatId = null;
 let currentUserId = null;
 
-// تهيئة الاتصال
 function initializeChat(chatId, userId) {
     currentChatId = chatId;
     currentUserId = userId;
@@ -25,10 +22,8 @@ function initializeChat(chatId, userId) {
         .configureLogging(signalR.LogLevel.Warning)
         .build();
 
-    // أحداث SignalR
     setupSignalREvents();
 
-    // بدء الاتصال
     connection.start()
         .then(() => {
             console.log("✅ SignalR Connected");
@@ -40,9 +35,7 @@ function initializeChat(chatId, userId) {
         });
 }
 
-// إعداد أحداث SignalR
 function setupSignalREvents() {
-    // استقبال الرسائل
     connection.on("ReceiveMessage", (senderId, message, time) => {
         displayMessage(message, senderId === currentUserId, time, senderId);
     });
@@ -64,14 +57,12 @@ function setupSignalREvents() {
             senderId
         );
     });
-    // مؤشر الكتابة
     connection.on("UserTyping", (chatId, userId) => {
         if (chatId === currentChatId && userId !== currentUserId) {
             showTypingIndicator();
         }
     });
 
-    // إعادة الاتصال
     connection.onreconnecting((error) => {
         console.log("🔄 Reconnecting...", error);
         updateConnectionStatus("reconnecting", "جاري إعادة الاتصال...");
@@ -89,7 +80,6 @@ function setupSignalREvents() {
     });
 }
 
-// عند الاتصال الناجح
 function onConnected() {
     updateConnectionStatus("connected", "متصل");
     joinChatRoom();
@@ -154,7 +144,6 @@ function displayFileMessage(fileUrl, messageType, fileName, isMe, time, senderId
 }
 
 
-// الانضمام للغرفة
 function joinChatRoom() {
     if (connection.state === signalR.HubConnectionState.Connected && currentChatId) {
         connection.invoke("JoinChat", currentChatId.toString())
@@ -162,12 +151,10 @@ function joinChatRoom() {
     }
 }
 
-// عرض الرسالة
 function displayMessage(message, isMe, time = null, senderId = null) {
     const chatBox = document.getElementById("chatBox");
     if (!chatBox) return;
 
-    // إزالة رسالة التحميل
     const loadingMsg = chatBox.querySelector('.text-center.text-muted');
     if (loadingMsg) loadingMsg.remove();
 
@@ -178,7 +165,6 @@ function displayMessage(message, isMe, time = null, senderId = null) {
         minute: '2-digit'
     });
 
-    // تحديد نوع الرسالة
     if (isMe) {
         messageDiv.className = "message-sent";
         messageDiv.innerHTML = `
@@ -198,11 +184,9 @@ function displayMessage(message, isMe, time = null, senderId = null) {
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // إخفاء مؤشر الكتابة
     hideTypingIndicator();
 }
 
-// إرسال رسالة
 function sendMessage(chatId, message) {
     if (!message.trim() || !connection) return;
 
@@ -212,7 +196,6 @@ function sendMessage(chatId, message) {
                 console.error("❌ SendMessage Error:", err);
                 displaySystemMessage("فشل إرسال الرسالة، جاري إعادة المحاولة...");
 
-                // محاولة إعادة الإرسال
                 setTimeout(() => {
                     if (connection.state === signalR.HubConnectionState.Connected) {
                         connection.invoke("SendMessage", chatId.toString(), message.trim());
@@ -224,7 +207,6 @@ function sendMessage(chatId, message) {
     }
 }
 
-// عرض رسالة نظامية
 function displaySystemMessage(text) {
     const chatBox = document.getElementById("chatBox");
     if (!chatBox) return;
@@ -237,20 +219,17 @@ function displaySystemMessage(text) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// عرض مؤشر الكتابة
 function showTypingIndicator() {
     const indicator = document.getElementById("typingIndicator");
     if (indicator) {
         indicator.style.display = "block";
 
-        // إخفاء بعد 3 ثواني
         setTimeout(() => {
             hideTypingIndicator();
         }, 3000);
     }
 }
 
-// إخفاء مؤشر الكتابة
 function hideTypingIndicator() {
     const indicator = document.getElementById("typingIndicator");
     if (indicator) {
@@ -258,7 +237,6 @@ function hideTypingIndicator() {
     }
 }
 
-// تحديث حالة الاتصال
 function updateConnectionStatus(className, text) {
     const statusElement = document.getElementById("connectionStatus");
     if (statusElement) {
@@ -267,32 +245,12 @@ function updateConnectionStatus(className, text) {
     }
 }
 
-// إشعار الكتابة
-function notifyTyping() {
-    if (connection && connection.state === signalR.HubConnectionState.Connected && currentChatId) {
-        connection.invoke("NotifyTyping", currentChatId, currentUserId);
-    }
-}
-
-// مغادرة المحادثة
-function leaveChat() {
-    if (connection && connection.state === signalR.HubConnectionState.Connected && currentChatId) {
-        connection.invoke("LeaveChat", currentChatId.toString())
-            .then(() => {
-                connection.stop();
-            })
-            .catch(err => console.error("❌ LeaveChat Error:", err));
-    }
-}
-
-// التهريب من HTML
 function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
 }
 
-// تصدير الوظائف للاستخدام في ملفات أخرى
 window.chatHelper = {
     initialize: initializeChat,
     sendMessage: sendMessage,

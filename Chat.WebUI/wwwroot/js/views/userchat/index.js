@@ -1,6 +1,3 @@
-// ==============================================
-// الثوابت والمتغيرات
-// ==============================================
 const MessageType = {
     Text: 0,
     Image: 1,
@@ -13,7 +10,7 @@ let currentChatId = null;
 let currentUserId = null;
 const MAX_CHARS = 500;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_VOICE_SECONDS = 300; // 5 دقائق كحد أقصى
+const MAX_VOICE_SECONDS = 300; 
 const ALLOWED_TYPES = {
     'image/jpeg': MessageType.Image,
     'image/png': MessageType.Image,
@@ -57,7 +54,6 @@ function setupChatUI() {
 
     initializeConnection();
 
-    // عناصر DOM
     const input = document.getElementById('msgInput');
     const btnSend = document.getElementById('btnSend');
     const btnEndChat = document.getElementById('btnEndChat');
@@ -76,7 +72,6 @@ function setupChatUI() {
     const btnCancelVoice = document.getElementById('btnCancelVoice');
     const btnCloseModal = document.querySelector('.btn-close-modal');
 
-    // إعداد event listeners للنص
     if (input) {
         input.addEventListener('input', function () {
             updateCharCount();
@@ -105,7 +100,6 @@ function setupChatUI() {
         input.addEventListener('blur', stopTyping);
     }
 
-    // إعداد أزرار الإرسال الأساسية
     if (btnSend) btnSend.addEventListener('click', sendMessage);
 
     if (btnEndChat) {
@@ -125,7 +119,6 @@ function setupChatUI() {
         });
     }
 
-    // إعداد أزرار الملفات
     if (btnAttachment) btnAttachment.addEventListener('click', selectFiles);
 
     if (btnImage) {
@@ -144,17 +137,14 @@ function setupChatUI() {
         });
     }
 
-    // إعداد زر التسجيل الصوتي
     if (btnVoice) {
         btnVoice.addEventListener('click', openVoiceModal);
     }
 
-    // إعداد input الملفات
     if (fileInput) {
         fileInput.addEventListener('change', handleFileSelect);
     }
 
-    // إعداد event listeners للتسجيل الصوتي
     if (btnStartRecord) btnStartRecord.addEventListener('click', startRecording);
     if (btnStopRecord) btnStopRecord.addEventListener('click', stopRecording);
     if (btnPlayRecord) btnPlayRecord.addEventListener('click', playRecording);
@@ -162,7 +152,6 @@ function setupChatUI() {
     if (btnCancelVoice) btnCancelVoice.addEventListener('click', closeVoiceModal);
     if (btnCloseModal) btnCloseModal.addEventListener('click', closeVoiceModal);
 
-    // إغلاق المودال عند النقر خارجها
     if (voiceModal) {
         voiceModal.addEventListener('click', function (e) {
             if (e.target === this) {
@@ -176,7 +165,6 @@ function setupChatUI() {
         if (input) input.focus();
     }, 1000);
 
-    // التحقق من دعم المتصفح للتسجيل الصوتي
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.warn('⚠️ التسجيل الصوتي غير مدعوم في هذا المتصفح');
         if (btnVoice) btnVoice.disabled = true;
@@ -191,7 +179,6 @@ window.addEventListener('beforeunload', function () {
             .catch(err => console.error("❌ فشل الخروج:", err));
     }
 
-    // تنظيف مصادر التسجيل الصوتي
     if (recordedAudio) {
         URL.revokeObjectURL(recordedAudio);
     }
@@ -200,9 +187,6 @@ window.addEventListener('beforeunload', function () {
     }
 });
 
-// ==============================================
-// دوال الاتصال
-// ==============================================
 function initializeConnection() {
     connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
@@ -232,13 +216,11 @@ function initializeConnection() {
 }
 
 function setupSignalREvents() {
-    // استقبال الرسائل النصية
     connection.on("ReceiveMessage", (senderId, message, time) => {
         const isMe = senderId === currentUserId;
         displayMessage(message, isMe, time, senderId);
     });
 
-    // استقبال رسائل الملفات - Handle both PascalCase and camelCase
     connection.on("ReceiveFileMessage", (data) => {
         const isMe = (data.senderId || data.SenderId) === currentUserId;
         displayFileMessage(
@@ -252,7 +234,6 @@ function setupSignalREvents() {
         );
     });
 
-    // مؤشرات الكتابة
     connection.on("UserStartedTyping", (chatId, userId) => {
         if (chatId === currentChatId && userId !== currentUserId) {
             showTypingIndicator(userId);
@@ -265,12 +246,9 @@ function setupSignalREvents() {
         }
     });
 
-    // تحديث حالة الرسالة
     connection.on("MessageStatusUpdated", (messageId, status) => {
-        // Handle message status updates if needed
     });
 
-    // أحداث النظام
     connection.on("UserJoined", (userId) => {
         if (userId !== currentUserId) {
             displaySystemMessage('انضم ممثل الدعم إلى المحادثة');
@@ -771,19 +749,15 @@ async function initVoiceRecorder() {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 recordedAudio = URL.createObjectURL(audioBlob);
 
-                // تمكين زر الاستماع والإرسال
                 document.getElementById('btnPlayRecord').disabled = false;
                 document.getElementById('btnSendVoice').disabled = false;
 
-                // عرض رسالة تأكيد
                 displaySystemMessage('تم حفظ التسجيل الصوتي. اضغط "استماع" للتحقق منه.');
             }
         };
 
-        // تمكين زر البدء
         document.getElementById('btnStartRecord').disabled = false;
 
-        // إنشاء مؤشر مرئي
         createVisualizer();
 
     } catch (err) {
@@ -793,75 +767,8 @@ async function initVoiceRecorder() {
     }
 }
 
-function createVisualizer() {
-    const visualizer = document.getElementById('voiceVisualizer');
-    if (!visualizer || !audioStream) return;
 
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = audioContext.createAnalyser();
-    const source = audioContext.createMediaStreamSource(audioStream);
-    source.connect(analyser);
 
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = visualizer.clientWidth;
-    canvas.height = visualizer.clientHeight;
-    const ctx = canvas.getContext('2d');
-    visualizer.innerHTML = '';
-    visualizer.appendChild(canvas);
-
-    function draw() {
-        if (!mediaRecorder || mediaRecorder.state !== 'recording') {
-            return;
-        }
-
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-
-        ctx.fillStyle = 'rgb(255, 255, 255)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i] / 2;
-
-            ctx.fillStyle = `rgb(${barHeight + 100}, 50, 150)`;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-            x += barWidth + 1;
-        }
-    }
-
-    draw();
-}
-
-function startRecording() {
-    if (!mediaRecorder) return;
-
-    // إعادة تهيئة المصفوفات
-    audioChunks = [];
-    recordSeconds = 0;
-
-    // بدء التسجيل
-    mediaRecorder.start();
-    console.log('🎤 بدأ التسجيل');
-
-    // تحديث حالة الأزرار
-    document.getElementById('btnStartRecord').disabled = true;
-    document.getElementById('btnStopRecord').disabled = false;
-    document.getElementById('btnPlayRecord').disabled = true;
-    document.getElementById('btnSendVoice').disabled = true;
-
-    // بدء المؤقت
-    updateRecordTimer();
-    recordTimer = setInterval(updateRecordTimer, 1000);
-}
 
 function stopRecording() {
     if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
@@ -869,36 +776,17 @@ function stopRecording() {
     mediaRecorder.stop();
     console.log('⏹️ توقف التسجيل');
 
-    // تحديث حالة الأزرار
     document.getElementById('btnStartRecord').disabled = false;
     document.getElementById('btnStopRecord').disabled = true;
 
-    // إيقاف المؤقت
     clearInterval(recordTimer);
 
-    // إغلاق stream
     if (audioStream) {
         audioStream.getTracks().forEach(track => track.stop());
         audioStream = null;
     }
 }
 
-function playRecording() {
-    if (!recordedAudio) return;
-
-    const audioPlayer = new Audio(recordedAudio);
-    audioPlayer.controls = false;
-
-    audioPlayer.onended = () => {
-        document.getElementById('btnPlayRecord').innerHTML = '<i class="fas fa-play"></i><span>استماع</span>';
-    };
-
-    audioPlayer.onplay = () => {
-        document.getElementById('btnPlayRecord').innerHTML = '<i class="fas fa-pause"></i><span>إيقاف</span>';
-    };
-
-    audioPlayer.play();
-}
 
 function updateRecordTimer() {
     recordSeconds++;
@@ -906,7 +794,6 @@ function updateRecordTimer() {
     const seconds = (recordSeconds % 60).toString().padStart(2, '0');
     document.getElementById('recordTime').textContent = `${minutes}:${seconds}`;
 
-    // تحذير قبل 30 ثانية من النهاية
     if (recordSeconds >= (MAX_VOICE_SECONDS - 30)) {
         const remaining = MAX_VOICE_SECONDS - recordSeconds;
         if (remaining === 30 || remaining === 10 || remaining <= 5) {
@@ -914,7 +801,6 @@ function updateRecordTimer() {
         }
     }
 
-    // إيقاف التلقائي عند الوصول للحد
     if (recordSeconds >= MAX_VOICE_SECONDS) {
         stopRecording();
         alert('تم الوصول للحد الأقصى للتسجيل (5 دقائق)');
@@ -922,27 +808,22 @@ function updateRecordTimer() {
 }
 
 function resetVoiceRecorder() {
-    // إيقاف أي تسجيل قيد التشغيل
     if (recordedAudio) {
         URL.revokeObjectURL(recordedAudio);
         recordedAudio = null;
     }
 
-    // تنظيف المصفوفات
     audioChunks = [];
     recordSeconds = 0;
 
-    // إعادة تعيين الأزرار
     document.getElementById('btnStartRecord').disabled = true;
     document.getElementById('btnStopRecord').disabled = true;
     document.getElementById('btnPlayRecord').disabled = true;
     document.getElementById('btnSendVoice').disabled = true;
     document.getElementById('recordTime').textContent = '00:00';
 
-    // إيقاف المؤقت
     clearInterval(recordTimer);
 
-    // مسح المؤشر المرئي
     const visualizer = document.getElementById('voiceVisualizer');
     if (visualizer) {
         visualizer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gray-dark);">سيظهر المؤشر الصوتي هنا عند التسجيل</div>';
@@ -956,15 +837,12 @@ async function sendVoiceMessage() {
     }
 
     try {
-        // عرض رسالة تحميل
         displaySystemMessage('جاري إرسال الرسالة الصوتية...');
 
-        // إنشاء ملف من التسجيل
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const fileName = `voice_message_${Date.now()}.webm`;
         const file = new File([audioBlob], fileName, { type: 'audio/webm' });
 
-        // رفع الملف
         const result = await uploadFile(file);
 
         if (result) {
