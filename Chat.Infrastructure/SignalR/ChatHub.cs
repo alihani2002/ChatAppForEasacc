@@ -24,7 +24,7 @@ public class ChatHub : Hub
         if (!string.IsNullOrEmpty(userId))
         {
             _userConnections[Context.ConnectionId] = userId;
-            _lastActivity[userId] = DateTime.UtcNow;
+            _lastActivity[userId] = DateTime.Now;
 
             await base.OnConnectedAsync();
         }
